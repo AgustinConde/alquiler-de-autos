@@ -1,0 +1,45 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<h2>Rentals history</h2>
+
+{% if rentals.length > 0 %}
+    <table>
+        <thead>
+            <tr>
+                <th>Car</th>
+                <th>Start Date</th>
+                <th>End date</th>
+                <th>Car image</th>
+                <th>Total price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+            
+            {% for rental in rentals %}
+            <tr>
+                <td>{{ rental.CarModel.brand }} {{ rental.CarModel.model }}</td>
+                <td>{{ rental.startDate }}</td>
+                <td>{{ rental.endDate }}</td>
+                <td>
+                    <img src="/static/cars/{{ rental.carId }}.png" alt="{{ rental.CarModel.year }} {{ rental.CarModel.brand }} {{ rental.CarModel.model }} image" width="100">
+                </td>
+                <td>{{ rental.totalPrice }}</td>
+                <td>
+                    <form action="/account/rentals/cancel/{{ rental.id }}" method="POST">
+                        <button type="submit">Cancel</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No rentals found.</p>
+{% endif %}
+
+{% endblock %}
