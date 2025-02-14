@@ -51,3 +51,4 @@ exports.formToEntity = ({
   'created-at': createdAt,
 }) =>
   new Car(id, brand, model, year, mileage, colour, ac, capacity, transmission, pricePerDay, image, createdAt);
+  

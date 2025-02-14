@@ -1,5 +1,5 @@
 const { modelToEntity: rentalModelToEntity } = require('../../rental/mapper/rentalMapper');
-const Client = require('../entity/User');
+const Client = require('../entity/Client');
 
 exports.modelToEntity = ({
   id,
