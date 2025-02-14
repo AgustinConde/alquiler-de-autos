@@ -66,7 +66,7 @@ module.exports = class RentalService {
     return this.RentalRepository.save(rental);
   }
 
-  async getAll() {
+  async getAllRentals() {
     return this.RentalRepository.getAll();
   }
 
