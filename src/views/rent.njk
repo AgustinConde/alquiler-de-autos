@@ -1,0 +1,43 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="title">Available cars for rent</h1>
+    
+    {% if rentals.length > 0 %}
+      <div class="columns is-multiline">
+        {% for rental in rentals %}
+          <div class="column is-one-third">
+            <div class="card">
+              <div class="card-image">
+                <figure class="image is-4by3">
+                  <img src="/images/cars/{{ rental.CarModel.image }}.png" alt="{{ rental.CarModel.year }} {{ rental.CarModel.brand }} {{ rental.CarModel.model }} image">
+                </figure>
+              </div>
+              <div class="card-content">
+                <p class="title">{{ rental.CarModel.brand }} {{ rental.CarModel.model }}</p>
+                <p><strong>Year:</strong> {{ rental.CarModel.year }}</p>
+                <p><strong>Mileage:</strong> {{ rental.CarModel.mileage }} km</p>
+                <p><strong>Colour:</strong> {{ rental.CarModel.colour }}</p>
+                <p><strong>A/C:</strong> {{ rental.CarModel.ac ? 'Yes' : 'No' }}</p>
+                <p><strong>Capacity:</strong> {{ rental.CarModel.capacity }}</p>
+                <p><strong>Transmission:</strong> {{ rental.CarModel.transmission }}</p>
+                <p><strong>Price/day:</strong> ${{ rental.CarModel.pricePerDay }}</p>
+                <br>
+                {% if user %}
+                    <a href="/rent/{{ rental.CarModel.id }}" class="button is-primary">Rent</a>
+                {% else %}
+                    <a href="/login" class="button is-warning">Log in to rent-a-car</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="has-text-danger">No available cars at this moment. Please try again later.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
