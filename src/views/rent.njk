@@ -23,7 +23,7 @@
                 <p><strong>A/C:</strong> {{ rental.CarModel.ac ? 'Yes' : 'No' }}</p>
                 <p><strong>Capacity:</strong> {{ rental.CarModel.capacity }}</p>
                 <p><strong>Transmission:</strong> {{ rental.CarModel.transmission }}</p>
-                <p><strong>Price/day:</strong> ${{ rental.pricePerDay }}</p>
+                <p><strong>Price/day:</strong> ${{ rental.CarModel.pricePerDay }}</p>
                 <br>
                 {% if user %}
                     <a href="/rent/{{ rental.CarModel.id }}" class="button is-primary">Rent</a>

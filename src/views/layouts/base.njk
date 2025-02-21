@@ -12,6 +12,17 @@
             <div class="navbar-brand">
                 <a class="navbar-item" href="/">Rent-a-car</a>
             </div>
+
+            <div class="navbar-end">
+                {% if client %}
+                <span class="navbar-item">Welcome, {{ client.username }}</span>
+                <form class="navbar-item" action="/auth/logout" method="POST">
+                    <button class="button is-danger">Logout</button>
+                </form>
+                {% else %}
+                <a class="navbar-item button is-primary" href="/auth/login">Login</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
