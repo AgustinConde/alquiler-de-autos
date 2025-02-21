@@ -1,6 +1,6 @@
 const { formToEntity } = require('../mapper/carMapper');
 const { CarIdNotDefinedError } = require('../error/carError');
-
+const { isAdmin, isAuthenticated } = require('../../auth/middleware/authMiddleware');
 
 module.exports = class CarController {
   /**
@@ -13,26 +13,20 @@ module.exports = class CarController {
     this.CAR_VIEWS = 'car/views';
   }
 
-
   /**
    * @param {import('express').Application} app
    */
   configureRoutes(app) {
     const ROUTE = this.ROUTE_BASE;
     app.get(`${ROUTE}`, this.index.bind(this));
-    app.get(`${ROUTE}/manage`, this.manage.bind(this));
-    app.get(`${ROUTE}/:carId`, this.view.bind(this));
-    app.get(`${ROUTE}/edit/:carId`, this.edit.bind(this));
-    app.get(`${ROUTE}/add`, this.add.bind(this));
-    app.post(`${ROUTE}/save`, this.uploadMiddleware.single('car-photo'), this.save.bind(this));
-    app.post(`${ROUTE}/delete/:carId`, this.delete.bind(this));
+    app.get(`${ROUTE}/manage`, isAdmin, this.manage.bind(this));
+    app.get(`${ROUTE}/:carId`, isAuthenticated, this.viewInfo.bind(this));
+    app.get(`${ROUTE}/edit/:carId`, isAdmin, this.edit.bind(this));
+    app.get(`${ROUTE}/add`, isAdmin, this.addCar.bind(this));
+    app.post(`${ROUTE}/save`, isAdmin, this.uploadMiddleware.single('car-photo'), this.save.bind(this));
+    app.post(`${ROUTE}/delete/:carId`, isAdmin, this.delete.bind(this));
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async index(req, res) {
     const carsLength = await this.carService.getCarsLength();
     let lastCar;
@@ -46,15 +40,9 @@ module.exports = class CarController {
         carsLength,
         lastCar,
       });
-
     }
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async manage(req, res) {
     const cars = await this.carService.getAllCars();
     res.render(`${this.CAR_VIEWS}/manage.njk`, {
@@ -63,11 +51,6 @@ module.exports = class CarController {
     });
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async viewInfo(req, res, next) {
     try {
       const { carId } = req.params;
@@ -86,11 +69,6 @@ module.exports = class CarController {
     }
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async edit(req, res) {
     const { carId } = req.params;
     if (!Number(carId)) {
@@ -104,22 +82,12 @@ module.exports = class CarController {
     });
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   addCar(req, res) {
     res.render(`${this.CAR_VIEWS}/add.njk`, {
       title: 'Add New Car',
     });
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async save(req, res) {
     const car = formToEntity(req.body);
     if (req.file) {
@@ -130,11 +98,6 @@ module.exports = class CarController {
     res.redirect(this.ROUTE_BASE);
   }
 
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
   async delete(req, res) {
     const { carId } = req.params;
     const car = await this.carService.getCarById(carId);

@@ -1,5 +1,6 @@
 const { formToEntity } = require('../mapper/clientMapper');
 const { ClientIdNotDefinedError } = require('../error/clientError');
+const { isAuthenticated, isAdmin } = require('../../../utilities/authUtilities');
 
 module.exports = class ClientController {
   /**
@@ -8,7 +9,7 @@ module.exports = class ClientController {
   constructor(ClientService) {
     this.ClientService = ClientService;
     this.ROUTE_BASE = '/account';
-    this.USER_VIEWS = 'client/views';
+    this.CLIENT_VIEWS = 'client/views';
   }
 
   /**
@@ -16,11 +17,11 @@ module.exports = class ClientController {
    */
   configureRoutes(app) {
     const ROUTE = this.ROUTE_BASE;
-    app.get(`${ROUTE}/manage`, this.manage.bind(this));
-    app.get(`${ROUTE}/view/:clientId`, this.view.bind(this));
-    app.get(`${ROUTE}/edit/:clientId`, this.edit.bind(this));
-    app.get(`${ROUTE}/add`, this.add.bind(this));
-    app.post(`${ROUTE}/save`, this.save.bind(this));
+    app.get(`${ROUTE}/manage`, isAuthenticated, isAdmin, this.manage.bind(this));
+    app.get(`${ROUTE}/view/:clientId`, isAuthenticated, this.view.bind(this));
+    app.get(`${ROUTE}/edit/:clientId`, isAuthenticated, isAdmin, this.edit.bind(this));
+    app.get(`${ROUTE}/add`, isAuthenticated, isAdmin, this.add.bind(this));
+    app.post(`${ROUTE}/save`, isAuthenticated, isAdmin, this.save.bind(this));
   }
 
   /**
@@ -29,7 +30,7 @@ module.exports = class ClientController {
    */
   async manage(req, res) {
     const clients = await this.ClientService.getAllClients();
-    res.render(`${this.USER_VIEWS}/manage.njk`, {
+    res.render(`${this.CLIENT_VIEWS}/manage.njk`, {
       title: 'Client List',
       clients,
     });
@@ -46,7 +47,7 @@ module.exports = class ClientController {
     }
 
     const client = await this.ClientService.getClientById(clientId);
-    res.render(`${this.USER_VIEWS}/view.njk`, {
+    res.render(`${this.CLIENT_VIEWS}/view.njk`, {
       title: `Viewing Client #${client.id}`,
       client,
       rentals: client.rentals,
@@ -64,7 +65,7 @@ module.exports = class ClientController {
     }
 
     const client = await this.ClientService.getClientById(clientId);
-    res.render(`${this.USER_VIEWS}/edit.njk`, {
+    res.render(`${this.CLIENT_VIEWS}/edit.njk`, {
       title: `Editing client #${client.id}`,
       client,
     });
@@ -75,7 +76,7 @@ module.exports = class ClientController {
    * @param {import('express').Response} res
    */
   add(req, res) {
-    res.render(`${this.USER_VIEWS}/add.njk`, {
+    res.render(`${this.CLIENT_VIEWS}/add.njk`, {
       title: 'Add New Client',
     });
   }
