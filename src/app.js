@@ -1,66 +1,91 @@
 require('dotenv').config();
-const express = require("express");
-const nunjucks = require("nunjucks");
-const path = require("path");
-const session = require("express-session");
-const SQLiteStore = require("connect-sqlite3")(session);
+const express = require('express');
+const nunjucks = require('nunjucks');
+const flash = require('connect-flash');
+const path = require('path');
+const sessionMiddleware = require('./config/session');
+const { isAuthenticated } = require('./module/auth/middleware/authMiddleware');
 
-const { sequelizeRental } = require("./config/dbRental");
-const { sequelizeAuth } = require("./config/dbAuth");
+const diConfig = require('./config/di');
+const { initCarModule } = require('./module/car/carModule');
+const { initClientModule } = require('./module/client/clientModule');
+const { initRentalModule } = require('./module/rental/rentalModule');
+const { initBackupModule } = require('./module/backup/backupModule');
+const { initAuthModule } = require('./module/auth/authModule');
 
-
-const RentalModel = require("./module/rental/model/rentalModel");
-const CarModel = require("./module/car/model/carModel");
-const ClientModel = require("./module/client/model/clientModel");
-const AuthModel = require("./module/auth/model/authModel");
-const AuthService = require("./module/auth/service/authService");
-const RentalController = require("./module/rental/controller/rentalController");
-const AuthController = require("./module/auth/controller/authController");
-
-const PORT = 8080;
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(
-  session({
-    store: new SQLiteStore({ db: "sessions.sqlite", dir: "./data" }),
-    secret: process.env.SESSION_PW,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false, httpOnly: true },
-  })
-);
-
-CarModel.setup(sequelizeRental);
-ClientModel.setup(sequelizeRental);
-RentalModel.setup(sequelizeRental);
-RentalModel.setAssociations(CarModel, ClientModel);
-AuthModel.setup(sequelizeAuth);
-
-Promise.all([sequelizeRental.sync({ alter: true }), sequelizeAuth.sync({ alter: true })])
-  .then(() => console.log("Databases synchronized successfully"))
-  .catch((error) => console.error("Error synchronizing databases:", error));
-
-nunjucks.configure(path.join(__dirname, "views"), {
-  autoescape: true,
-  express: app,
-  watch: true,
-});
-
-app.set("view engine", "njk");
-app.use(express.static(path.join(__dirname, "../static")));
-app.use("/images", express.static(path.join(__dirname, "../static/images")));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-const authService = new AuthService(AuthModel);
-const authController = new AuthController(authService);
+const viewPaths = [
+    path.join(__dirname, 'views'),
+    path.join(__dirname, 'module')
+];
 
-authController.configureRoutes(app);
-
-app.use("/", RentalController);
-app.use("/auth", AuthController); 
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const env = nunjucks.configure(viewPaths, {
+    autoescape: true,
+    express: app,
+    watch: true
+});
+app.set('view engine', 'njk');
+env.addFilter('date', function(str) {
+    return new Date(str).toLocaleDateString();
 });
 
-module.exports = app;
+app.use(sessionMiddleware);
+app.use(flash());
+app.use(isAuthenticated);
+
+app.use((req, res, next) => {
+    console.log('📍 Request:', {
+        method: req.method,
+        url: req.url,
+        sessionId: req.sessionID,
+        hasSession: !!req.session,
+        clientId: req.session?.clientId
+    });
+    next();
+});
+
+app.use((req, res, next) => {
+    res.locals.user = req.session.clientId ? {
+        id: req.session.clientId,
+        role: req.session.role
+    } : null;
+    res.locals.flash = req.flash();
+    next();
+});
+
+const container = diConfig();
+initAuthModule(app, container);
+initCarModule(app, container);
+initClientModule(app, container);
+initRentalModule(app, container);
+initBackupModule(app, container);
+
+const rentalSequelize = container.get('RentalSequelize');
+
+rentalSequelize.sync({ force: process.env.NODE_ENV !== 'production'  })
+.then(async () => {
+    console.log('🗃️ Database sync successful');
+    const defaultController = container.get('DefaultController');
+    defaultController.configureRoutes(app);
+
+    app.use((err, req, res, next) => {
+        console.error('❌ Error:', err);
+        res.status(500).render('error.njk', {
+            error: process.env.NODE_ENV === 'development' ? err : 'An unexpected error occurred'
+        });
+    });
+
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+})
+.catch((error) => {
+    console.error('❌ Database sync error:', error);
+    process.exit(1);
+});
