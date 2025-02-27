@@ -20,11 +20,8 @@
   },
   "homepage": "https://github.com/AgustinConde/alquiler-de-autos#readme",
   "dependencies": {
-<<<<<<< Updated upstream
-=======
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
->>>>>>> Stashed changes
     "bulma": "^1.0.3",
     "connect-flash": "^0.1.1",
     "connect-sqlite3": "^0.9.15",
