@@ -82,7 +82,7 @@ class ClientController {
    */
   async update(req, res) {
     try {
-      await this.clientService.update(req.params.id, req.body);
+      await this.clientService.save(req.params.id, req.body);
       req.flash('success', 'Client updated successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {

@@ -45,7 +45,7 @@ class ClientRepository {
    */
   async getClientById(clientId) {
     if (!Number(clientId)) {
-      throw new clientIdNotDefinedError();
+      throw new ClientIdNotDefinedError();
     }
     const client = await this.clientModel.findByPk(clientId, { include: RentalModel });
     if (!client) {
