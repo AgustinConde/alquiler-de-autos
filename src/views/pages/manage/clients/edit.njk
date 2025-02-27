@@ -1,0 +1,90 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Edit Client</h1>
+
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    <form action="/manage/clients/{{ client.id }}/edit" method="POST">
+                        <div class="field">
+                            <label class="label">Name</label>
+                            <div class="control">
+                                <input class="input" type="text" name="name" value="{{ client.name }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Surname</label>
+                            <div class="control">
+                                <input class="input" type="text" name="surname" value="{{ client.surname }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Email</label>
+                            <div class="control">
+                                <input class="input" type="email" value="{{ client.email }}" readonly>
+                                <p class="help">Email cannot be changed</p>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Phone</label>
+                            <div class="control">
+                                <input class="input" type="tel" name="phone" value="{{ client.phone }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Role</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="role" required>
+                                        <option value="client" {% if client.role === 'client' %}selected{% endif %}>Client</option>
+                                        <option value="admin" {% if client.role === 'admin' %}selected{% endif %}>Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Address</label>
+                            <div class="control">
+                                <input class="input" type="text" name="address" value="{{ client.address }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field is-grouped is-grouped-centered">
+                            <p class="control">
+                                <button type="submit" class="button is-primary">
+                                    <span class="icon">
+                                        <i class="fas fa-save"></i>
+                                    </span>
+                                    <span>Update Client</span>
+                                </button>
+                            </p>
+                            <p class="control">
+                                <a href="/manage/clients" class="button is-light">
+                                    <span class="icon">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span>Cancel</span>
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

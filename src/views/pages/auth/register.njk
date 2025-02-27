@@ -1,0 +1,158 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Register</h1>
+                    
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    {% if flash.success %}
+                        <div class="notification is-success">
+                            {{ flash.success }}
+                        </div>
+                    {% endif %}
+
+                    <form action="/auth/register" method="POST">
+                        <div class="columns is-multiline">
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Name</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="name" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Surname</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="surname" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Email</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="email" name="email" required>
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Phone</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="tel" name="phone" required>
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">ID Type</label>
+                                    <div class="control">
+                                        <div class="select is-fullwidth">
+                                            <select name="idType" required>
+                                                <option value="DNI">DNI</option>
+                                                <option value="Passport">Passport</option>
+                                                <option value="Driver License">Driver License</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">ID Number</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="idNumber" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Birth Date</label>
+                                    <div class="control">
+                                        <input class="input" type="date" name="birthDate" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Nationality</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="nationality" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-full">
+                                <div class="field">
+                                    <label class="label">Address</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="address" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Password</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="password" name="password" required>
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="column is-half">
+                                <div class="field">
+                                    <label class="label">Confirm Password</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="password" name="confirmPassword" required>
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field mt-4">
+                            <button class="button is-primary is-fullwidth" type="submit">
+                                Register
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="has-text-centered mt-4">
+                        <p>Already have an account? <a href="/auth/login">Login</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

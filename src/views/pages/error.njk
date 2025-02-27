@@ -1,0 +1,27 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-6">
+                <div class="notification is-danger">
+                    <h1 class="title">Error</h1>
+                    <p>{{ error.message }}</p>
+                    {% if error.stack and process.env.NODE_ENV !== 'production' %}
+                        <pre class="mt-4">{{ error.stack }}</pre>
+                    {% endif %}
+                </div>
+                <div class="has-text-centered mt-4">
+                    <a href="/" class="button is-primary">
+                        <span class="icon">
+                            <i class="fas fa-home"></i>
+                        </span>
+                        <span>Go Home</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

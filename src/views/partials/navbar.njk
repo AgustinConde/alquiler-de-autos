@@ -1,0 +1,72 @@
+<nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <strong>Rent-a-Car</strong>
+            </a>
+        </div>
+
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="/">
+                    <span class="icon">
+                        <i class="fas fa-home"></i>
+                    </span>
+                    <span>Home</span>
+                </a>
+                {% if auth and auth.role === 'admin' %}
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">
+                            <span class="icon">
+                                <i class="fas fa-cogs"></i>
+                            </span>
+                            <span>Manage</span>
+                        </a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="/manage/cars">Cars</a>
+                            <a class="navbar-item" href="/manage/clients">Clients</a>
+                            <a class="navbar-item" href="/manage/rentals">Rentals</a>
+                            <a class="navbar-item" href="/manage/backups">Backups</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="navbar-end">
+                {% if isAuthenticated %}
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">
+                            <span class="icon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span>{{ auth.username }}</span>
+                        </a>
+                        <div class="navbar-dropdown is-right">
+                            <a class="navbar-item" href="/profile">Profile</a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="/auth/logout">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <a class="button is-primary" href="/auth/register">
+                                <span>Sign up</span>
+                            </a>
+                            <a class="button is-light" href="/auth/login">
+                                <span>Login</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="navbar-item">
+                    <a class="button" id="theme-toggle">
+                        <span class="icon">
+                            <i class="fas fa-adjust"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

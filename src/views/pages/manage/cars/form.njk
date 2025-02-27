@@ -1,0 +1,111 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is
+-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">
+                        {{ car ? 'Edit Car' : 'Add New Car' }}
+                    </h1>
+
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ car ? '/manage/cars/' + car.id + '/edit' : '/manage/cars/create' }}" method="POST">
+                        <div class="field">
+                            <label class="label">Brand</label>
+                            <div class="control">
+                                <input class="input" type="text" name="brand" value="{{ car.brand }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Model</label>
+                            <div class="control">
+                                <input class="input" type="text" name="model" value="{{ car.model }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Year</label>
+                            <div class="control">
+                                <input class="input" type="number" name="year" value="{{ car.year }}" min="1900" max="2025" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Price per Day</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" name="pricePerDay" value="{{ car.pricePerDay }}" min="0" step="0.01" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Color</label>
+                            <div class="control">
+                                <input class="input" type="text" name="color" value="{{ car.color }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <label class="checkbox">
+                                    <input type="checkbox" name="ac" {% if car.ac %}checked{% endif %}>
+                                    Has Air Conditioning
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Transmission</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="transmission" required>
+                                        <option value="manual" {% if car.transmission === 'manual' %}selected{% endif %}>Manual</option>
+                                        <option value="automatic" {% if car.transmission === 'automatic' %}selected{% endif %}>Automatic</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Capacity</label>
+                            <div class="control">
+                                <input class="input" type="number" name="capacity" value="{{ car.capacity }}" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="field is-grouped is-grouped-centered">
+                            <p class="control">
+                                <button type="submit" class="button is-primary">
+                                    <span class="icon">
+                                        <i class="fas fa-save"></i>
+                                    </span>
+                                    <span>{{ car ? 'Update' : 'Create' }}</span>
+                                </button>
+                            </p>
+                            <p class="control">
+                                <a href="/manage/cars" class="button is-light">
+                                    <span class="icon">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span>Cancel</span>
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

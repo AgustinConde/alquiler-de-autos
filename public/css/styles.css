@@ -1,0 +1,153 @@
+/* Theme variables */
+:root {
+  --primary-color: #00d1b2;
+  --primary-dark: #00947e;
+}
+
+html[data-theme="light"] {
+  --bg-color: #f5f5f5;
+  --text-color: #363636;
+  --card-bg: #ffffff;
+  --navbar-bg: #ffffff;
+  --border-color: #dbdbdb;
+  --footer-bg: #fafafa;
+  --hero-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+html[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: #1e1e1e;
+  --navbar-bg: #1e1e1e;
+  --border-color: #333333;
+  --footer-bg: #1e1e1e;
+  --hero-gradient: linear-gradient(135deg, #00806c, #004d40);
+}
+
+/* Navbar and layout spacing */
+html {
+    scroll-padding-top: 52px; /* Altura del navbar */
+}
+
+/* Base styles */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 52px; /* Altura del navbar */
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: var(--navbar-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-item,
+.navbar-link {
+  color: var(--text-color);
+}
+
+.navbar-burger span {
+  background-color: var(--text-color);
+}
+
+/* Hero section */
+.hero.is-primary {
+  background: var(--hero-gradient);
+  margin-top: 2rem;
+  padding: 3rem 1.5rem;
+  position: relative;
+}
+
+.hero-body {
+  padding: 3rem 1.5rem;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  color: var(--text-color);
+}
+
+.card-footer {
+  border-top: 1px solid var(--border-color);
+}
+
+/* Footer styles */
+.footer {
+  background-color: var(--footer-bg);
+  margin-top: auto;
+  padding: 2rem;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+/* Theme toggle button */
+#theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+#theme-toggle:hover {
+  background: var(--border-color);
+}
+
+/* Notifications and alerts */
+.notification {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* Tags */
+.tag {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.tag.is-info {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+/* Main content area */
+main {
+  flex: 1;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout spacing */
+.section {
+  padding: 3rem 1.5rem;
+  flex: 1;
+}

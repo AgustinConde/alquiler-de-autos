@@ -1,0 +1,109 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Profile</h1>
+                    
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    {% if flash.success %}
+                        <div class="notification is-success">
+                            {{ flash.success }}
+                        </div>
+                    {% endif %}
+
+                    <div class="field">
+                        <label class="label">Name</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.name }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Surname</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.surname }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <div class="control">
+                            <input class="input" type="email" value="{{ client.email }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Phone</label>
+                        <div class="control">
+                            <input class="input" type="tel" value="{{ client.phone }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">ID Type</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.idType }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">ID Number</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.idNumber }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Nationality</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.nationality }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Birth Date</label>
+                        <div class="control">
+                            <input class="input" type="date" value="{{ client.birthDate | date('YYYY-MM-DD') }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Address</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.address }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field is-grouped is-grouped-centered mt-5">
+                        <p class="control">
+                            <a href="/profile/edit" class="button is-primary">
+                                <span class="icon">
+                                    <i class="fas fa-edit"></i>
+                                </span>
+                                <span>Edit Profile</span>
+                            </a>
+                        </p>
+                        <p class="control">
+                            <a href="/profile/change-password" class="button is-info">
+                                <span class="icon">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <span>Change Password</span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

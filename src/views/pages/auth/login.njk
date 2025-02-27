@@ -1,0 +1,59 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop is-4-widescreen">
+                <div class="box">
+                    <h1 class="title has-text-centered">Login</h1>
+                    
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    {% if flash.success %}
+                        <div class="notification is-success">
+                            {{ flash.success }}
+                        </div>
+                    {% endif %}
+
+                    <form action="/auth/login" method="POST">
+                        <div class="field">
+                            <label class="label">Email</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="email" name="email" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Password</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="password" name="password" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <button class="button is-primary is-fullwidth" type="submit">
+                                Login
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="has-text-centered mt-4">
+                        <p>Don't have an account? <a href="/auth/register">Register</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

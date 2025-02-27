@@ -1,0 +1,113 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Edit Rental</h1>
+
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    <form action="/manage/rentals/{{ rental.id }}/edit" method="POST">
+                        <div class="field">
+                            <label class="label">Client</label>
+                            <div class="control">
+                                <input class="input" type="text" 
+                                       value="{{ rental.client.name }} {{ rental.client.surname }}" 
+                                       readonly>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Car</label>
+                            <div class="control">
+                                <input class="input" type="text" 
+                                       value="{{ rental.car.brand }} {{ rental.car.model }}" 
+                                       readonly>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Start Date</label>
+                            <div class="control">
+                                <input class="input" type="date" name="startDate" 
+                                       value="{{ rental.startDate | date('YYYY-MM-DD') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">End Date</label>
+                            <div class="control">
+                                <input class="input" type="date" name="endDate" 
+                                       value="{{ rental.endDate | date('YYYY-MM-DD') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Status</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select name="status" required>
+                                        <option value="active" {% if rental.status === 'active' %}selected{% endif %}>
+                                            Active
+                                        </option>
+                                        <option value="completed" {% if rental.status === 'completed' %}selected{% endif %}>
+                                            Completed
+                                        </option>
+                                        <option value="cancelled" {% if rental.status === 'cancelled' %}selected{% endif %}>
+                                            Cancelled
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Total Price</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" name="totalPrice" 
+                                       value="{{ rental.totalPrice }}" step="0.01" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Notes</label>
+                            <div class="control">
+                                <textarea class="textarea" name="notes">{{ rental.notes }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="field is-grouped is-grouped-centered">
+                            <p class="control">
+                                <button type="submit" class="button is-primary">
+                                    <span class="icon">
+                                        <i class="fas fa-save"></i>
+                                    </span>
+                                    <span>Update Rental</span>
+                                </button>
+                            </p>
+                            <p class="control">
+                                <a href="/manage/rentals" class="button is-light">
+                                    <span class="icon">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span>Cancel</span>
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

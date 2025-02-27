@@ -1,0 +1,95 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="level">
+            <div class="level-left">
+                <div class="level-item">
+                    <h1 class="title">Manage Rentals</h1>
+                </div>
+            </div>
+        </div>
+
+        {% if flash.error %}
+            <div class="notification is-danger">
+                {{ flash.error }}
+            </div>
+        {% endif %}
+
+        {% if flash.success %}
+            <div class="notification is-success">
+                {{ flash.success }}
+            </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client</th>
+                        <th>Car</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rental in rentals %}
+                        <tr>
+                            <td>{{ rental.id }}</td>
+                            <td>{{ rental.client.name }} {{ rental.client.surname }}</td>
+                            <td>{{ rental.car.brand }} {{ rental.car.model }}</td>
+                            <td>{{ rental.startDate | date('DD/MM/YYYY') }}</td>
+                            <td>{{ rental.endDate | date('DD/MM/YYYY') }}</td>
+                            <td>
+                                <span class="tag 
+                                    {% if rental.status === 'active' %}is-success
+                                    {% elif rental.status === 'completed' %}is-info
+                                    {% elif rental.status === 'cancelled' %}is-danger
+                                    {% endif %}">
+                                    {{ rental.status }}
+                                </span>
+                            </td>
+                            <td>${{ rental.totalPrice }}</td>
+                            <td>
+                                <div class="buttons are-small">
+                                    <a href="/manage/rentals/{{ rental.id }}/edit" class="button is-info" title="Edit">
+                                        <span class="icon">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                    </a>
+                                    {% if rental.status === 'active' %}
+                                        <form action="/manage/rentals/{{ rental.id }}/complete" method="POST" style="display: inline;">
+                                            <button type="submit" class="button is-success" title="Complete Rental">
+                                                <span class="icon">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <form action="/manage/rentals/{{ rental.id }}/delete" method="POST" style="display: inline;">
+                                        <button type="submit" class="button is-danger" title="Delete" 
+                                                onclick="return confirm('Are you sure you want to delete this rental?')">
+                                            <span class="icon">
+                                                <i class="fas fa-trash"></i>
+                                            </span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="has-text-centered">No rentals found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

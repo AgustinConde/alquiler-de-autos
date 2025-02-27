@@ -1,0 +1,121 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="title has-text-centered">Admin Panel</h1>
+
+        {% if flash.error %}
+            <div class="notification is-danger">
+                {{ flash.error }}
+            </div>
+        {% endif %}
+
+        <div class="columns is-centered is-multiline">
+            <div class="column is-4">
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title is-4">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-car"></i>
+                                </span>
+                                <span>Cars</span>
+                            </span>
+                        </p>
+                        <p class="subtitle">Manage vehicles inventory</p>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="/manage/cars" class="card-footer-item">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <span>Go to Cars</span>
+                            </span>
+                        </a>
+                    </footer>
+                </div>
+            </div>
+
+            <div class="column is-4">
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title is-4">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                <span>Clients</span>
+                            </span>
+                        </p>
+                        <p class="subtitle">Manage client accounts</p>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="/manage/clients" class="card-footer-item">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <span>Go to Clients</span>
+                            </span>
+                        </a>
+                    </footer>
+                </div>
+            </div>
+
+            <div class="column is-4">
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title is-4">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-file-contract"></i>
+                                </span>
+                                <span>Rentals</span>
+                            </span>
+                        </p>
+                        <p class="subtitle">Manage rental contracts</p>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="/manage/rentals" class="card-footer-item">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <span>Go to Rentals</span>
+                            </span>
+                        </a>
+                    </footer>
+                </div>
+            </div>
+
+            <div class="column is-4">
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title is-4">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-database"></i>
+                                </span>
+                                <span>Backups</span>
+                            </span>
+                        </p>
+                        <p class="subtitle">Manage system backups</p>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="/manage/backups" class="card-footer-item">
+                            <span class="icon-text">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <span>Go to Backups</span>
+                            </span>
+                        </a>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

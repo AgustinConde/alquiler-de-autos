@@ -1,0 +1,90 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="level">
+            <div class="level-left">
+                <div class="level-item">
+                    <h1 class="title">Manage Cars</h1>
+                </div>
+            </div>
+            <div class="level-right">
+                <div class="level-item">
+                    <a href="/manage/cars/create" class="button is-primary">
+                        <span class="icon">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span>Add New Car</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if flash.error %}
+            <div class="notification is-danger">
+                {{ flash.error }}
+            </div>
+        {% endif %}
+
+        {% if flash.success %}
+            <div class="notification is-success">
+                {{ flash.success }}
+            </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>Year</th>
+                        <th>Price/Day</th>
+                        <th>AC</th>
+                        <th>Transmission</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                        <tr>
+                            <td>{{ car.brand }}</td>
+                            <td>{{ car.model }}</td>
+                            <td>{{ car.year }}</td>
+                            <td>${{ car.pricePerDay }}</td>
+                            <td>
+                                <span class="icon {% if car.ac %}has-text-success{% else %}has-text-grey{% endif %}">
+                                    <i class="fas {% if car.ac %}fa-check{% else %}fa-times{% endif %}"></i>
+                                </span>
+                            </td>
+                            <td>{{ car.transmission }}</td>
+                            <td>
+                                <div class="buttons are-small">
+                                    <a href="/manage/cars/{{ car.id }}/edit" class="button is-info" title="Edit">
+                                        <span class="icon">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                    </a>
+                                    <form action="/manage/cars/{{ car.id }}/delete" method="POST" style="display: inline;">
+                                        <button type="submit" class="button is-danger" title="Delete" 
+                                                onclick="return confirm('Are you sure you want to delete this car?')">
+                                            <span class="icon">
+                                                <i class="fas fa-trash"></i>
+                                            </span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="has-text-centered">No cars found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

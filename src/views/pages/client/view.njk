@@ -1,0 +1,126 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Client Details</h1>
+
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    <div class="field">
+                        <label class="label">Name</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.name }} {{ client.surname }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <div class="control">
+                            <input class="input" type="email" value="{{ client.email }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Phone</label>
+                        <div class="control">
+                            <input class="input" type="tel" value="{{ client.phone }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Address</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.address }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">ID</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.idType }}: {{ client.idNumber }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Nationality</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.nationality }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Birth Date</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ client.birthDate | date('DD/MM/YYYY') }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Role</label>
+                        <div class="control">
+                            <span class="tag {% if client.auth.role === 'admin' %}is-primary{% else %}is-info{% endif %}">
+                                {{ client.auth.role }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if rentals and rentals.length > 0 %}
+                        <div class="content">
+                            <h3 class="subtitle">Rentals</h3>
+                            <table class="table is-fullwidth is-striped is-hoverable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Car</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rental in rentals %}
+                                        <tr>
+                                            <td>{{ rental.id }}</td>
+                                            <td>{{ rental.car.brand }} {{ rental.car.model }}</td>
+                                            <td>{{ rental.startDate | date('DD/MM/YYYY') }} - {{ rental.endDate | date('DD/MM/YYYY') }}</td>
+                                            <td>
+                                                <span class="tag 
+                                                    {% if rental.status === 'active' %}is-success
+                                                    {% elif rental.status === 'completed' %}is-info
+                                                    {% elif rental.status === 'cancelled' %}is-danger
+                                                    {% endif %}">
+                                                    {{ rental.status }}
+                                                </span>
+                                            </td>
+                                            <td>${{ rental.totalPrice }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
+                    <div class="field is-grouped is-grouped-centered mt-5">
+                        <p class="control">
+                            <a href="/manage/clients" class="button is-light">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-left"></i>
+                                </span>
+                                <span>Back</span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

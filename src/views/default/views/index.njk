@@ -1,0 +1,81 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div class="page-content">
+    <section class="hero is-primary">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title mt-6">
+                    Welcome to Rent-a-Car
+                </h1>
+                <h2 class="subtitle">
+                    Find your perfect ride for any occasion
+                </h2>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            {% if cars and cars.length > 0 %}
+                <div class="columns is-multiline">
+                    {% for car in cars %}
+                    <div class="column is-4">
+                        <div class="card">
+                            <div class="card-image">
+                                <figure class="image is-4by3">
+                                    <img src="{{ car.image or '/images/car-placeholder.jpg' }}" alt="{{ car.brand }} {{ car.model }}">
+                                </figure>
+                            </div>
+                            <div class="card-content">
+                                <p class="title is-4">{{ car.brand }} {{ car.model }}</p>
+                                <p class="subtitle is-6">${{ car.pricePerDay }} per day</p>
+                                
+                                <div class="content">
+                                    <div class="tags">
+                                        <span class="tag">{{ car.year }}</span>
+                                        <span class="tag">{{ car.transmission }}</span>
+                                        {% if car.ac %}
+                                            <span class="tag is-info">A/C</span>
+                                        {% endif %}
+                                    </div>
+                                    <ul>
+                                        <li>Color: {{ car.colour }}</li>
+                                        <li>Capacity: {{ car.capacity }} passengers</li>
+                                        <li>Mileage: {{ car.mileage }}km</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <footer class="card-footer">
+                                <a href="/rental/new/{{ car.id }}" class="card-footer-item button is-primary">
+                                    <span class="icon">
+                                        <i class="fas fa-key"></i>
+                                    </span>
+                                    <span>Rent Now</span>
+                                </a>
+                            </footer>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <span class="icon empty-state-icon">
+                        <i class="fas fa-car"></i>
+                    </span>
+                    <h3 class="title is-4">No cars available</h3>
+                    <p class="subtitle is-6">Check back soon for new vehicles!</p>
+                    {% if isAdmin %}
+                        <a href="/car/new" class="button is-primary">
+                            <span class="icon">
+                                <i class="fas fa-plus"></i>
+                            </span>
+                            <span>Add New Car</span>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

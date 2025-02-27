@@ -1,0 +1,87 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="level">
+            <div class="level-left">
+                <div class="level-item">
+                    <h1 class="title">Manage Clients</h1>
+                </div>
+            </div>
+        </div>
+
+        {% if flash.error %}
+            <div class="notification is-danger">
+                {{ flash.error }}
+            </div>
+        {% endif %}
+
+        {% if flash.success %}
+            <div class="notification is-success">
+                {{ flash.success }}
+            </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                        <tr>
+                            <td>{{ client.name }} {{ client.surname }}</td>
+                            <td>{{ client.email }}</td>
+                            <td>{{ client.phone }}</td>
+                            <td>
+                                <span class="tag {% if client.auth.role === 'admin' %}is-primary{% else %}is-info{% endif %}">
+                                    {{ client.auth.role }}
+                                </span>
+                            </td>
+                            <td>{{ client.createdAt | date('DD/MM/YYYY') }}</td>
+                            <td>
+                                <div class="buttons">
+                                    <a href="/manage/clients/{{ client.id }}/edit" class="button is-info is-small" title="Edit">
+                                        <span class="icon">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                    </a>
+                                    <form action="/manage/clients/{{ client.id }}/delete" method="POST" style="display: inline;">
+                                        <button type="submit" class="button is-danger is-small mr-2" title="Delete" 
+                                                onclick="return confirm('Are you sure you want to delete this client?')">
+                                            <span class="icon">
+                                                <i class="fas fa-trash"></i>
+                                            </span>
+                                        </button>
+                                    </form>
+                                    {% if client.auth.role !== 'admin' %}
+                                        <form action="/manage/clients/{{ client.id }}/make-admin" method="POST" style="display: inline;">
+                                            <button type="submit" class="button is-success is-small" title="Make Admin">
+                                                <span class="icon">
+                                                    <i class="fas fa-user-shield"></i>
+                                                </span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="has-text-centered">No clients found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

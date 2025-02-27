@@ -1,41 +1,95 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rent-a-car</title>
-    <link rel="stylesheet" href="/css/bulma.min.css">
+    <title>{{ title }} - Rent-a-Car</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.15.4/js/all.js"></script>
+    <style>
+        .hero.is-primary {
+            background-color: #00d1b2;
+            margin-top: -1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #dbdbdb;
+            margin-bottom: 1rem;
+        }
+
+        .box {
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 3px rgba(10,10,10,.1), 0 0 0 1px rgba(10,10,10,.1);
+        }
+
+        [data-theme="dark"] {
+            background-color: #2b2b2b;
+            color: #fff;
+        }
+
+        [data-theme="dark"] .navbar {
+            background-color: #363636;
+        }
+
+        [data-theme="dark"] .navbar-item,
+        [data-theme="dark"] .navbar-link {
+            color: #fff;
+        }
+
+        [data-theme="dark"] .box {
+            background-color: #363636;
+            color: #fff;
+        }
+
+        [data-theme="dark"] .title,
+        [data-theme="dark"] .label {
+            color: #fff;
+        }
+
+        [data-theme="dark"] .input,
+        [data-theme="dark"] .select select {
+            background-color: #2b2b2b;
+            color: #fff;
+            border-color: #4a4a4a;
+        }
+
+        [data-theme="dark"] .card {
+            background-color: #363636;
+            color: #fff;
+        }
+
+        .page-content {
+            min-height: calc(100vh - 52px - 84px);
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar is-primary">
-        <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="/">Rent-a-car</a>
-            </div>
+    {% include "partials/navbar.njk" %}
+    <div class="page-content">
+        {% block content %}{% endblock %}
+    </div>
+    {% include "partials/footer.njk" %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
 
-            <div class="navbar-end">
-                {% if client %}
-                <span class="navbar-item">Welcome, {{ client.username }}</span>
-                <form class="navbar-item" action="/auth/logout" method="POST">
-                    <button class="button is-danger">Logout</button>
-                </form>
-                {% else %}
-                <a class="navbar-item button is-primary" href="/auth/login">Login</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <main class="section">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="content has-text-centered">
-            <p>© 2025 r/argentina-programa</p>
-        </div>
-    </footer>
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.setAttribute('data-theme', savedTheme);
+        });
+    </script>
 </body>
 </html>

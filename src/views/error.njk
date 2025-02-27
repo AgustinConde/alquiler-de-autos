@@ -1,15 +1,15 @@
 {% extends "layouts/base.njk" %}
 
-{% block body %}
-    <section class="section">
-        <div class="container">
-            <nav class="level">
-                <div class="level-item has-text-centered">
-                    <div class="notification is-danger">
-                        {{error}}
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </section>
+{% block content %}
+<div class="container">
+    <div class="notification is-danger">
+        <h1 class="title">Error</h1>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <p>An unexpected error occurred</p>
+        {% endif %}
+        <a href="/" class="button is-light mt-4">Back to Home</a>
+    </div>
+</div>
 {% endblock %}

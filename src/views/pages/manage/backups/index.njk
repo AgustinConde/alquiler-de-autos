@@ -1,0 +1,72 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="title">Backup Management</h1>
+
+        {% if flash.success %}
+            <div class="notification is-success">
+                {{ flash.success }}
+            </div>
+        {% endif %}
+
+        {% if flash.error %}
+            <div class="notification is-danger">
+                {{ flash.error }}
+            </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Entity Type</th>
+                        <th>Entity ID</th>
+                        <th>Created At</th>
+                        <th>Restored At</th>
+                        <th>Rentals Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                        <tr>
+                            <td>{{ backup.id }}</td>
+                            <td>{{ backup.entityType }}</td>
+                            <td>{{ backup.entityId }}</td>
+                            <td>{{ backup.createdAt | date('DD/MM/YYYY HH:mm') }}</td>
+                            <td>
+                                {% if backup.restoredAt %}
+                                    {{ backup.restoredAt | date('DD/MM/YYYY HH:mm') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ backup.data | length }}</td>
+                            <td>
+                                {% if not backup.restoredAt %}
+                                    <form action="/manage/backups/{{ backup.id }}/restore" method="POST" style="display: inline;">
+                                        <button type="submit" class="button is-small is-primary" 
+                                                onclick="return confirm('Are you sure you want to restore this backup?')">
+                                            <span class="icon">
+                                                <i class="fas fa-undo"></i>
+                                            </span>
+                                            <span>Restore</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="has-text-centered">No backups found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8-tablet is-6-desktop">
+                <div class="box">
+                    <h1 class="title has-text-centered">Rental Details #{{ rental.id }}</h1>
+
+                    {% if flash.error %}
+                        <div class="notification is-danger">
+                            {{ flash.error }}
+                        </div>
+                    {% endif %}
+
+                    <div class="field">
+                        <label class="label">Client</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ rental.client.name }} {{ rental.client.surname }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Car</label>
+                        <div class="control">
+                            <input class="input" type="text" value="{{ rental.car.brand }} {{ rental.car.model }} ({{ rental.car.year }})" readonly>
+                        </div>
+                    </div>
+
+                    <div class="columns">
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">Start Date</label>
+                                <div class="control">
+                                    <input class="input" type="text" value="{{ rental.startDate | date('DD/MM/YYYY') }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">End Date</label>
+                                <div class="control">
+                                    <input class="input" type="text" value="{{ rental.endDate | date('DD/MM/YYYY') }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="columns">
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">Status</label>
+                                <div class="control">
+                                    <span class="tag 
+                                        {% if rental.status === 'active' %}is-success
+                                        {% elif rental.status === 'completed' %}is-info
+                                        {% elif rental.status === 'cancelled' %}is-danger
+                                        {% endif %}">
+                                        {{ rental.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">Total Price</label>
+                                <div class="control">
+                                    <input class="input" type="text" value="${{ rental.totalPrice }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if rental.notes %}
+                        <div class="field">
+                            <label class="label">Notes</label>
+                            <div class="control">
+                                <textarea class="textarea" readonly>{{ rental.notes }}</textarea>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="field is-grouped is-grouped-centered mt-5">
+                        <p class="control">
+                            {% if isAdmin %}
+                                <a href="/manage/rentals" class="button is-light">
+                                    <span class="icon">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </span>
+                                    <span>Back</span>
+                                </a>
+                            {% else %}
+                                <a href="/profile/rentals" class="button is-light">
+                                    <span class="icon">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </span>
+                                    <span>Back</span>
+                                </a>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
