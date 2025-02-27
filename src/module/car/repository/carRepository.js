@@ -2,7 +2,7 @@ const { modelToEntity } = require('../mapper/carMapper');
 const Car = require('../entity/Car');
 const { CarNotDefinedError, CarIdNotDefinedError, CarNotFoundError } = require('../error/carError');
 const RentalModel = require('../../rental/model/rentalModel');
-const BackupRepository = require('../../rental/repository/backupRepository');
+const BackupRepository = require('../../backup/repository/backupRepository');
 
 module.exports = class CarRepository {
   /**

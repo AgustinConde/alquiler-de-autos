@@ -4,7 +4,7 @@ const Client = require('../entity/Client');
 const RentalModel = require('../../rental/model/rentalModel');
 
 
-module.exports = class ClientRepository {
+class ClientRepository {
   /**
    * @param {typeof import('../model/clientModel')} clientModel
    */
@@ -16,19 +16,27 @@ module.exports = class ClientRepository {
    * @param {import('../entity/Client')} client
    */
   async save(client) {
-    if (!(client instanceof Client)) {
-      throw new ClientNotDefinedError();
+    try {
+      console.log('📦 Saving client data:', client);
+      const clientInstance = await this.clientModel.create(client);
+      console.log('✅ Client instance created:', clientInstance.toJSON());
+      return clientInstance.toJSON();
+    } catch (error) {
+      console.error('❌ Error saving client:', error);
+      throw error;
     }
-
-    const clientInstance = this.clientModel.build(client, {
-      isNewRecord: !client.id,
-    });
-    await clientInstance.save();
-    return modelToEntity(clientInstance);
   }
 
   async getAllClients() {
-    const clients = await this.clientModel.findAll();
+    const clients = await this.clientModel.findAll({
+      include: [
+          {
+              association: 'Auth',
+              attributes: ['role']
+          }
+      ],
+      order: [['id', 'ASC']]
+  });
     return clients.map(modelToEntity);
   }
 
@@ -63,4 +71,41 @@ module.exports = class ClientRepository {
 
     return Boolean(deleted);
   }
-};
+
+  async getByEmail(email) {
+    return this.clientModel.findOne({ 
+      where: { 
+        email,
+        deletedAt: null 
+      } 
+    });
+  }
+
+  async getAll() {
+    return this.clientModel.findAll();
+  }
+
+  /**
+   * @param {number} clientId
+   * @param {Object} updateData
+   */
+  async update(clientId, updateData) {
+    if (!Number(clientId)) {
+      throw new ClientIdNotDefinedError();
+    }
+
+    const client = await this.clientModel.findByPk(clientId);
+    if (!client) {
+      throw new ClientNotFoundError(`There is no existing client with ID ${clientId}`);
+    }
+
+    await client.update(updateData);
+    return client.toJSON();
+  }
+
+  async getClientById(id) {
+    return this.clientModel.findByPk(id);
+  }
+}
+
+module.exports = ClientRepository;

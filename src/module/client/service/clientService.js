@@ -1,12 +1,14 @@
 const { ClientNotDefinedError, ClientIdNotDefinedError } = require('../error/clientError');
 const Client = require('../entity/Client');
 
-module.exports = class ClientService {
+class ClientService {
   /**
    * @param {import('../repository/clientRepository')} clientRepository
+   * @param {import('../service/backupService')} backupService
    */
-  constructor(clientRepository) {
-    this.ClientRepository = clientRepository;
+  constructor(clientRepository, backupService) {
+    this.clientRepository = clientRepository;
+    this.backupService = backupService;
   }
 
   /**
@@ -16,11 +18,11 @@ module.exports = class ClientService {
     if (!(client instanceof Client)) {
       throw new ClientNotDefinedError();
     }
-    return this.ClientRepository.save(client);
+    return this.clientRepository.save(client);
   }
 
   async getAll() {
-    return this.ClientRepository.getAllClients();
+    return this.clientRepository.getAll();
   }
 
   /**
@@ -30,6 +32,22 @@ module.exports = class ClientService {
     if (!Number(clientId)) {
       throw new ClientIdNotDefinedError();
     }
-    return this.ClientRepository.getClientById(clientId);
+    return this.clientRepository.getClientById(clientId);
   }
-};
+
+  async delete(id) {
+    const client = await Client.findByPk(id, {
+      include: [{ model: Rental }]
+    });
+
+    if (!client) throw new Error('Client not found');
+
+    if (client.Rentals.length > 0) {
+      await this.backupService.createBackup('client', id, client.Rentals);
+    }
+
+    await client.destroy();
+  }
+}
+
+module.exports = ClientService;

@@ -11,8 +11,14 @@ function initClientModule(app, container) {
   /**
    * @type {ClientController} controller
    */
-  const controller = container.get('ClientController');
-  controller.configureRoutes(app);
+    const controller = container.get('ClientController');
+    controller.configureRoutes(app);
 }
 
-module.exports = { ClientController, ClientService, ClientRepository, ClientModel, initClientModule };
+module.exports = {
+    initClientModule,
+    ClientController,
+    ClientService,
+    ClientRepository,
+    ClientModel
+};
