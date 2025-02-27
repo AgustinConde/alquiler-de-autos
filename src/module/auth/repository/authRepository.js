@@ -1,5 +1,5 @@
 const AuthModel = require('../model/authModel');
-const Auth = require('../entity/authEntity');
+const Auth = require('../entity/Auth');
 
 module.exports = class AuthRepository {
   /**
@@ -14,17 +14,7 @@ module.exports = class AuthRepository {
    * @returns {Promise<Auth>}
    */
   async save(auth) {
-    try {
-      const createdAuth = await this.authModel.create(auth);
-      return new Auth(
-        createdAuth.id,
-        createdAuth.username,
-        createdAuth.passwordHash,
-        createdAuth.role
-      );
-    } catch (error) {
-      throw new Error('Error saving authentication data.');
-    }
+    return this.authModel.create(auth);
   }
 
   /**
@@ -40,5 +30,18 @@ module.exports = class AuthRepository {
     } catch (error) {
       throw new Error('Error retrieving authentication data.');
     }
+  }
+
+  /**
+   * @param {string} email
+   * @returns {Promise<Auth | null>}
+   */
+  async getByEmail(email) {
+    return this.authModel.findOne({ 
+      where: { 
+        username: email,
+        deletedAt: null 
+      } 
+    });
   }
 };

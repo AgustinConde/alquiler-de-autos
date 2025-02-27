@@ -1,39 +1,30 @@
 const { formToEntity } = require('../mapper/clientMapper');
 const { ClientIdNotDefinedError } = require('../error/clientError');
-const { isAuthenticated, isAdmin } = require('../../../utilities/authUtilities');
+const { isAdmin } = require('../../auth/middleware/authMiddleware');
 
-module.exports = class ClientController {
+class ClientController {
   /**
-   * @param {import('../service/ClientService')} ClientService
+   * @param {import('../service/clientService')} clientService
    */
-  constructor(ClientService) {
-    this.ClientService = ClientService;
-    this.ROUTE_BASE = '/account';
-    this.CLIENT_VIEWS = 'client/views';
+  constructor(clientService) {
+    this.clientService = clientService;
+    this.ADMIN_ROUTE = '/manage/clients';
+    this.CLIENT_VIEWS = 'pages/client';
   }
 
   /**
    * @param {import('express').Application} app
    */
   configureRoutes(app) {
-    const ROUTE = this.ROUTE_BASE;
-    app.get(`${ROUTE}/manage`, isAuthenticated, isAdmin, this.manage.bind(this));
-    app.get(`${ROUTE}/view/:clientId`, isAuthenticated, this.view.bind(this));
-    app.get(`${ROUTE}/edit/:clientId`, isAuthenticated, isAdmin, this.edit.bind(this));
-    app.get(`${ROUTE}/add`, isAuthenticated, isAdmin, this.add.bind(this));
-    app.post(`${ROUTE}/save`, isAuthenticated, isAdmin, this.save.bind(this));
-  }
+    const ROUTE = this.ADMIN_ROUTE;
 
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
-  async manage(req, res) {
-    const clients = await this.ClientService.getAllClients();
-    res.render(`${this.CLIENT_VIEWS}/manage.njk`, {
-      title: 'Client List',
-      clients,
-    });
+    // Admin routes
+    app.get(`${ROUTE}`, isAdmin, this.adminIndex.bind(this));
+    app.get(`${ROUTE}/:id`, isAdmin, this.view.bind(this));
+    app.get(`${ROUTE}/:id/edit`, isAdmin, this.edit.bind(this));
+    app.post(`${ROUTE}/:id/edit`, isAdmin, this.update.bind(this));
+    app.post(`${ROUTE}/:id/delete`, isAdmin, this.delete.bind(this));
+    app.post(`${ROUTE}/:id/make-admin`, isAdmin, this.makeAdmin.bind(this));
   }
 
   /**
@@ -46,7 +37,7 @@ module.exports = class ClientController {
       throw new ClientIdNotDefinedError();
     }
 
-    const client = await this.ClientService.getClientById(clientId);
+    const client = await this.clientService.getClientById(clientId);
     res.render(`${this.CLIENT_VIEWS}/view.njk`, {
       title: `Viewing Client #${client.id}`,
       client,
@@ -58,24 +49,68 @@ module.exports = class ClientController {
    * @param {import('express').Request} req
    * @param {import('express').Response} res
    */
-  async edit(req, res) {
-    const { clientId } = req.params;
-    if (!Number(clientId)) {
-      throw new ClientIdNotDefinedError();
+  async adminIndex(req, res) {
+    try {
+      const clients = await this.clientService.getAll();
+      res.render('pages/manage/clients/index.njk', {
+        title: 'Manage Clients',
+        clients
+      });
+    } catch (error) {
+      req.flash('error', 'Error loading clients');
+      res.redirect('/');
     }
-
-    const client = await this.ClientService.getClientById(clientId);
-    res.render(`${this.CLIENT_VIEWS}/edit.njk`, {
-      title: `Editing client #${client.id}`,
-      client,
-    });
   }
 
   /**
    * @param {import('express').Request} req
    * @param {import('express').Response} res
    */
-  add(req, res) {
+  async edit(req, res) {
+    try {
+      const client = await this.clientService.getClientById(req.params.id);
+      res.render('pages/manage/clients/edit.njk', { client });
+    } catch (error) {
+      console.error('Error loading client:', error);
+      res.status(500).send('Error loading client');
+    }
+  }
+
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   */
+  async update(req, res) {
+    try {
+      await this.clientService.update(req.params.id, req.body);
+      req.flash('success', 'Client updated successfully');
+      res.redirect(this.ADMIN_ROUTE);
+    } catch (error) {
+      req.flash('error', error.message);
+      res.redirect(`${this.ADMIN_ROUTE}/${req.params.id}/edit`);
+    }
+  }
+
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   */
+  async delete(req, res) {
+    try {
+      await this.clientService.delete(req.params.id);
+      req.flash('success', 'Client deleted successfully');
+      res.redirect(this.ADMIN_ROUTE);
+    } catch (error) {
+      req.flash('error', 'Error deleting client');
+      res.redirect(this.ADMIN_ROUTE);
+    }
+  }
+
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   */
+  async add(req, res) {
     res.render(`${this.CLIENT_VIEWS}/add.njk`, {
       title: 'Add New Client',
     });
@@ -87,7 +122,30 @@ module.exports = class ClientController {
    */
   async save(req, res) {
     const client = formToEntity(req.body);
-    await this.ClientService.save(client);
+    await this.clientService.save(client);
     res.redirect(`${this.ROUTE_BASE}/manage`);
   }
-};
+
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   */
+  async makeAdmin(req, res) {
+    try {
+        if (!req.session.client || req.session.client.role !== 'admin') {
+            req.flash('error', 'You do not have permission to perform this action');
+            return res.redirect('/manage/clients');
+        }
+
+        const client = await this.clientService.update(req.params.id, { role: 'admin' });
+        
+        req.flash('success', `Successfully made ${client.email} an admin`);
+        res.redirect('/manage/clients');
+    } catch (error) {
+        req.flash('error', error.message);
+        res.redirect('/manage/clients');
+    }
+  }
+}
+
+module.exports = ClientController;

@@ -1,12 +1,10 @@
 const RentalModel = require("../../rental/model/rentalModel");
 const { RentalNotDefinedError, RentalIdNotDefinedError, RentalNotFoundError } = require('../error/RentalError');
 
-
-
 module.exports = class RentalService {
   /**
-   * @param {import('../repository/RentalRepository')} RentalRepository
-   * @param {import('../../car/repository/CarRepository')} CarRepository
+   * @param {import('../repository/rentalRepository')} RentalRepository
+   * @param {import('../../car/repository/carRepository')} CarRepository
    */
   constructor(RentalRepository, CarRepository) {
     this.RentalRepository = RentalRepository;
@@ -66,8 +64,8 @@ module.exports = class RentalService {
     return this.RentalRepository.save(rental);
   }
 
-  async getAllRentals() {
-    return this.RentalRepository.getAll();
+  async getAll() {
+    return this.RentalRepository.getAllRentals();
   }
 
   /**
@@ -75,7 +73,7 @@ module.exports = class RentalService {
    * @param  {...import('../entity/RentalIsPaid').RentalIsPaid} isPaid
    */
   async getByPaymentProgress(...isPaid){
-    return this.RentalRepository.getByPaymentProgress(isPaid.map(r => r.value));
+    return this.RentalRepository.getRentalsByStatus(isPaid.map(r => r.value));
   }
 
   /**

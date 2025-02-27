@@ -5,10 +5,10 @@ module.exports = class CarService {
   /**
    * @param {import('../repository/carRepository')} carRepository
    */
-  constructor(carRepository) {
+  constructor(carRepository, backupService) {
     this.carRepository = carRepository;
+    this.backupService = backupService;
   }
-
 
   /**
    * @param {import('../entity/Car')} car
@@ -32,7 +32,6 @@ module.exports = class CarService {
     return this.carRepository.getLastCar();
   }
 
-
   /**
    * @param {number} carId
    * @returns {Promise<Car>}
@@ -53,5 +52,19 @@ module.exports = class CarService {
     }
 
     return this.carRepository.delete(car);
+  }
+
+  async delete(id) {
+    const car = await Car.findByPk(id, {
+      include: [{ model: Rental }]
+    });
+
+    if (!car) throw new Error('Car not found');
+
+    if (car.Rentals.length > 0) {
+      await this.backupService.createBackup('car', id, car.Rentals);
+    }
+
+    await car.destroy();
   }
 };

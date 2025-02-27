@@ -1,6 +1,6 @@
 const Rental = require('../entity/Rental');
 const CarModel = require('../../car/model/carModel');
-const ClientModel = require('../../user/model/clientModel');
+const ClientModel = require('../../client/model/clientModel');
 const { Op } = require('sequelize');
 const { modelToEntity } = require('../mapper/rentalMapper');
 const { modelToEntity: carModelToEntity } = require('../../car/mapper/carMapper');
@@ -9,7 +9,7 @@ const { RentalNotDefinedError, RentalIdNotDefinedError, RentalNotFoundError } = 
 
 module.exports = class RentalRepository {
   /**
-   * @param {typeof import('../model/RentalModel')} RentalModel
+   * @param {typeof import('../model/rentalModel')} RentalModel
    */
   constructor(RentalModel) {
     this.RentalModel = RentalModel;
