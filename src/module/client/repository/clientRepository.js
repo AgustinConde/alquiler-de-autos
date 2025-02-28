@@ -1,7 +1,6 @@
 const { modelToEntity } = require('../mapper/clientMapper');
 const { ClientNotDefinedError, ClientIdNotDefinedError, ClientNotFoundError } = require('../error/clientError');
 const Client = require('../entity/Client');
-const RentalModel = require('../../rental/model/rentalModel');
 
 
 class ClientRepository {
@@ -29,30 +28,26 @@ class ClientRepository {
 
   async getAllClients() {
     const clients = await this.clientModel.findAll({
-      include: [
-          {
-              association: 'Auth',
-              attributes: ['role']
-          }
-      ],
+      include: [{
+        model: AuthModel,
+        as: 'Auth',
+        attributes: ['role']
+      }],
       order: [['id', 'ASC']]
-  });
-    return clients.map(modelToEntity);
-  }
+    });
+    
+    return clients.map(client => {
+      const clientEntity = modelToEntity(client);
 
-  /**
-   * @param {number} clientId
-   */
-  async getClientById(clientId) {
-    if (!Number(clientId)) {
-      throw new ClientIdNotDefinedError();
-    }
-    const client = await this.clientModel.findByPk(clientId, { include: RentalModel });
-    if (!client) {
-      throw new ClientNotFoundError(`There is no existing client with ID ${clientId}`);
-    }
-
-    return modelToEntity(client);
+      if (client.Auth) {
+        clientEntity.auth = {
+          role: client.Auth.role
+        };
+      } else {
+        clientEntity.auth = { role: 'client' };
+      }
+      return clientEntity;
+    });
   }
 
   /**
