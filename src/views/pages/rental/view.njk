@@ -17,7 +17,11 @@
                     <div class="field">
                         <label class="label">Client</label>
                         <div class="control">
-                            <input class="input" type="text" value="{{ rental.client.name }} {{ rental.client.surname }}" readonly>
+                            {% if rental.client and rental.client.name %}
+                                <input class="input" type="text" value="{{ rental.client.name }} {{ rental.client.surname }}" readonly>
+                            {% else %}
+                                <input class="input" type="text" value="Client information not available" readonly>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -33,7 +37,7 @@
                             <div class="field">
                                 <label class="label">Start Date</label>
                                 <div class="control">
-                                    <input class="input" type="text" value="{{ rental.startDate | date('DD/MM/YYYY') }}" readonly>
+                                    <input class="input" type="text" value="{{ rental.rentalStart | date('YYYY-MM-DD') }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -41,7 +45,7 @@
                             <div class="field">
                                 <label class="label">End Date</label>
                                 <div class="control">
-                                    <input class="input" type="text" value="{{ rental.endDate | date('DD/MM/YYYY') }}" readonly>
+                                    <input class="input" type="text" value="{{ rental.rentalEnd | date('YYYY-MM-DD') }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -53,11 +57,10 @@
                                 <label class="label">Status</label>
                                 <div class="control">
                                     <span class="tag 
-                                        {% if rental.status === 'active' %}is-success
-                                        {% elif rental.status === 'completed' %}is-info
-                                        {% elif rental.status === 'cancelled' %}is-danger
-                                        {% endif %}">
-                                        {{ rental.status }}
+                                        {% if rental.status === 'completed' %}is-success
+                                        {% elif rental.status === 'pending' %}is-warning
+                                        {% else %}is-info{% endif %}">
+                                        {{ rental.status | capitalize }}
                                     </span>
                                 </div>
                             </div>

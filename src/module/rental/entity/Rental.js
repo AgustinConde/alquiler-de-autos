@@ -50,16 +50,24 @@ module.exports = class Rental {
   }
 
   formatDate() {
-    const [startDate, endDate] = [this.startDate, this.endDate].map((date) =>
-      new Date(date).toLocaleString(false, {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-      })
-    );
-    return { startDate, endDate };
+    const formatSingleDate = (date) => {
+      if (!date) return '';
+      try {
+        return new Date(date).toLocaleString(false, {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric'
+        });
+      } catch (e) {
+        console.error('Error formatting date:', e);
+        return '';
+      }
+    };
+  
+    return {
+      startDate: formatSingleDate(this.rentalStart),
+      endDate: formatSingleDate(this.rentalEnd)
+    };
   }
 
   rentalLength() {
