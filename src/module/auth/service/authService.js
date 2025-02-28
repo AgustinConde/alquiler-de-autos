@@ -6,6 +6,10 @@ module.exports = class AuthService {
     this.clientRepository = clientRepository;
   }
 
+  /**
+   * @param {String} email
+   * @param {String} password
+   */
   async login(email, password) {
     try {
       const auth = await this.authRepository.getByEmail(email);
@@ -27,6 +31,9 @@ module.exports = class AuthService {
     }
   }
 
+    /**
+   * @param {Object} clientData
+   */
   async register(clientData) {
     try {
       const existingAuth = await this.authRepository.getByEmail(clientData.email);
@@ -64,6 +71,9 @@ module.exports = class AuthService {
     }
   }
 
+    /**
+   * @param {Number} clientId
+   */
   async getClientProfile(clientId) {
     try {
       const client = await this.clientRepository.getClientById(clientId);
@@ -80,6 +90,17 @@ module.exports = class AuthService {
     }
   }
 
+  /**
+   * @param {Number} clientId
+   */
+  async getAuthByClientId(clientId) {
+    return this.authRepository.getAuthByClientId(clientId);
+  }
+
+  /**
+   * @param {Number} clientId
+   * @param {Object} updateData
+   */
   async updateProfile(clientId, updateData) {
     const client = await this.clientRepository.getClientById(clientId);
     
@@ -95,6 +116,27 @@ module.exports = class AuthService {
     return updatedClient;
   }
 
+  /**
+   * @param {Number} clientId
+   * @param {String} role
+   */ 
+  async updateRole(clientId, role) {
+    const auth = await this.authRepository.getAuthByClientId(clientId);
+    
+    if (!auth) {
+      throw new Error('Authentication not found');
+    }
+    
+    await this.authRepository.update(auth.id, { role });
+    return auth;
+  }
+
+
+  /**
+    * @param {Number} clientId
+    * @param {String} currentPassword
+    * @param {String} newPassword
+   */
   async changePassword(clientId, currentPassword, newPassword) {
     const auth = await this.authRepository.getAuthByClientId(clientId);
     
