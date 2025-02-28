@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    res.locals.user = req.session.clientId ? {
+    res.locals.client = req.session.clientId ? {
         id: req.session.clientId,
         role: req.session.role
     } : null;

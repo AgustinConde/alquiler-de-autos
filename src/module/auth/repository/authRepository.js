@@ -44,4 +44,30 @@ module.exports = class AuthRepository {
       } 
     });
   }
+
+
+    /**
+   * @param {number} id
+   * @param {Object} data
+   */
+    async update(id, data) {
+      try {
+        const auth = await this.authModel.findByPk(id);
+        if (!auth) {
+          throw new Error(`Auth record with ID ${id} not found`);
+        }
+        
+        await auth.update(data);
+        
+        return new Auth(
+          auth.id, 
+          auth.username, 
+          auth.passwordHash, 
+          auth.role
+        );
+      } catch (error) {
+        console.error('❌ Error updating auth:', error);
+        throw error;
+      }
+    }
 };

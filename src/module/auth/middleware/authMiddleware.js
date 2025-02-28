@@ -3,12 +3,15 @@
  * @returns {boolean}
  */
 function isAdmin(req, res, next) {
-    if (!req.session?.auth || req.session.auth.role !== 'admin') {
-        console.log('❌ Admin access denied');
-        req.flash('error', 'You need administrator permissions to access this area');
+    if (!req.session?.clientId) {
+        return res.redirect('/auth/login');
+    }
+    
+    if (req.session.role !== 'admin') {
+        req.flash('error', 'Access denied: Admin privileges required');
         return res.redirect('/');
     }
-    console.log('✅ Admin access granted');
+    
     next();
 }
 

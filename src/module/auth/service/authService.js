@@ -12,19 +12,36 @@ module.exports = class AuthService {
    */
   async login(email, password) {
     try {
-      const auth = await this.authRepository.getByEmail(email);
+      console.log('🔐 Authenticating user:', email);
+      
+      const auth = await this.authRepository.getByUsername(email);
       
       if (!auth) {
-        console.log('❌ No auth found with email:', email);
+        console.log('❌ Auth not found for:', email);
         throw new Error('Invalid credentials');
       }
-
+      
       const isValid = await bcrypt.compare(password, auth.passwordHash);
       if (!isValid) {
+        console.log('❌ Invalid password for:', email);
         throw new Error('Invalid credentials');
       }
 
-      return auth;
+      let client;
+      if (!auth.clientId) {
+        console.log('⚠️ Auth record missing clientId, falling back to email search');
+        client = await this.clientRepository.getByEmail(email);
+      } else {
+        client = await this.clientRepository.getClientById(auth.clientId);
+      }
+      
+      if (!client) {
+        console.log('❌ No client found for user:', email);
+        throw new Error('User account not found');
+      }
+      
+      console.log('✅ Login successful for:', email);
+      return { auth, client };
     } catch (error) {
       console.error('❌ Login error:', error);
       throw error;
@@ -121,15 +138,15 @@ module.exports = class AuthService {
    * @param {String} role
    */ 
   async updateRole(clientId, role) {
-    const auth = await this.authRepository.getAuthByClientId(clientId);
+    const client = await this.clientRepository.getClientById(clientId);
     
-    if (!auth) {
-      throw new Error('Authentication not found');
+    if (!client) {
+        throw new Error('Client not found');
     }
     
-    await this.authRepository.update(auth.id, { role });
-    return auth;
-  }
+    await this.clientRepository.update(clientId, { role });
+    return client;
+}
 
 
   /**

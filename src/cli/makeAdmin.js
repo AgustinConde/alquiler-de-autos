@@ -1,5 +1,6 @@
 const { Sequelize } = require('sequelize');
 const AuthModel = require('../module/auth/model/authModel');
+const ClientModel = require('../module/client/model/clientModel');
 const path = require('path');
 require('dotenv').config();
 
@@ -22,6 +23,7 @@ async function makeAdmin(email) {
         await sequelize.authenticate();
 
         const Auth = AuthModel.setup(sequelize);
+        const Client = ClientModel.setup(sequelize);
         await sequelize.sync();
 
         const auth = await Auth.findOne({ where: { username: email } });
@@ -31,8 +33,17 @@ async function makeAdmin(email) {
             process.exit(1);
         }
 
-        await auth.update({ role: 'admin' });
-        console.log(`Successfully made ${email} an admin`);
+        const clientId = auth.clientId;
+        
+        // Buscar el cliente
+        const client = await Client.findByPk(clientId);
+        if (!client) {
+            console.error(`No client found with ID: ${clientId}`);
+            process.exit(1);
+        }
+
+        await client.update({ role: 'admin' });
+        console.log(`Successfully made ${email} an admin by updating client #${clientId}`);
         process.exit(0);
     } catch (error) {
         console.error('Error:', error.message);

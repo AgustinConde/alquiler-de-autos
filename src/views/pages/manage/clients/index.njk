@@ -42,8 +42,8 @@
                             <td>{{ client.email }}</td>
                             <td>{{ client.phone }}</td>
                             <td>
-                                <span class="tag {% if client.auth.role === 'admin' %}is-primary{% else %}is-info{% endif %}">
-                                    {{ client.auth.role }}
+                                <span class="tag {% if client.role == 'admin' %}is-primary{% else %}is-info{% endif %}">
+                                    {{ client.role }}
                                 </span>
                             </td>
                             <td>{{ client.createdAt | date('DD/MM/YYYY') }}</td>
@@ -62,7 +62,7 @@
                                             </span>
                                         </button>
                                     </form>
-                                    {% if client.auth.role !== 'admin' %}
+                                    {% if client.role !== 'admin' %}
                                         <form action="/manage/clients/{{ client.id }}/make-admin" method="POST" style="display: inline;">
                                             <button type="submit" class="button is-success is-small" title="Make Admin">
                                                 <span class="icon">

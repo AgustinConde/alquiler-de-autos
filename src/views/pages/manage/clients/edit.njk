@@ -49,8 +49,8 @@
                             <div class="control">
                                 <div class="select is-fullwidth">
                                     <select name="role" required>
-                                        <option value="client" {% if client.role === 'client' %}selected{% endif %}>Client</option>
-                                        <option value="admin" {% if client.role === 'admin' %}selected{% endif %}>Admin</option>
+                                        <option value="client" {% if client.role == 'client' %}selected{% endif %}>Client</option>
+                                        <option value="admin" {% if client.role == 'admin' %}selected{% endif %}>Admin</option>
                                     </select>
                                 </div>
                             </div>

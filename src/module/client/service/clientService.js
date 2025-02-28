@@ -25,6 +25,14 @@ class ClientService {
     return this.clientRepository.getAll();
   }
 
+  async update(clientId, updateData) {
+    if (!Number(clientId)) {
+        throw new ClientIdNotDefinedError();
+    }
+    
+    return this.clientRepository.update(clientId, updateData);
+}
+
   /**
    * @param {number} clientId
    */

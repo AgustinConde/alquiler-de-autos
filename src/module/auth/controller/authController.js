@@ -59,34 +59,34 @@ module.exports = class AuthController {
      * @param {import('express').Response} res
      */
     async processLogin(req, res) {
-        try {
-            const { email, password } = req.body;
-            const auth = await this.authService.login(email, password);
-            
-            req.session.clientId = auth.clientId;
-            req.session.auth = {
-                id: auth.id,
-                username: auth.username,
-                role: auth.role
-            };
-
-            await new Promise((resolve, reject) => {
-                req.session.save(err => {
-                    if (err) {
-                        console.error('❌ Session save error:', err);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
-            res.redirect('/');
-        } catch (error) {
-            console.error('❌ Login error:', error);
-            req.flash('error', 'Invalid credentials');
-            res.redirect('/auth/login');
-        }
-    }
+      try {
+          const { email, password } = req.body;
+          const { auth, client } = await this.authService.login(email, password);
+          
+          req.session.clientId = client.id;
+          req.session.auth = {
+              id: auth.id,
+              username: auth.username
+          };
+          req.session.role = client.role;
+  
+          await new Promise((resolve, reject) => {
+              req.session.save(err => {
+                  if (err) {
+                      console.error('❌ Session save error:', err);
+                      reject(err);
+                  } else {
+                      resolve();
+                  }
+              });
+          });
+          res.redirect('/');
+      } catch (error) {
+          console.error('❌ Login error:', error);
+          req.flash('error', 'Invalid credentials');
+          res.redirect('/auth/login');
+      }
+  }
   
     /**
      * @param {import('express').Request} req

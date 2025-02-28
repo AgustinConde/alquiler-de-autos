@@ -22,11 +22,6 @@ module.exports = class AuthModel extends Model {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
-                role: {
-                    type: DataTypes.ENUM('admin', 'client'),
-                    allowNull: false,
-                    defaultValue: 'client'
-                },
                 clientId: {
                     type: DataTypes.INTEGER,
                     allowNull: false,

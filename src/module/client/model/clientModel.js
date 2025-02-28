@@ -1,5 +1,4 @@
 const { Model, DataTypes } = require('sequelize');
-const AuthModel = require('../../auth/model/authModel');
 
 module.exports = class ClientModel extends Model {
     /**
@@ -60,6 +59,11 @@ module.exports = class ClientModel extends Model {
         allowNull: false,
         field: 'birth_date'
       },
+      role: {
+        type: DataTypes.ENUM('admin', 'client'),
+        allowNull: false,
+        defaultValue: 'client'
+    },
     }, {
       sequelize: sequelizeInstance,
       modelName: 'Client',
@@ -75,8 +79,8 @@ module.exports = class ClientModel extends Model {
   /**
 * @param {typeof import('../../auth/model/authModel')} AuthModel
 */
-static setAssociations() {
-  ClientModel.belongsTo(AuthModel, { foreignKey: 'clientId', as: 'auth', onDelete: 'CASCADE'});
+static setAssociations(AuthModel) {
+  ClientModel.hasOne(AuthModel, { foreignKey: 'clientId', as: 'Auth', onDelete: 'CASCADE'});
   return ClientModel;
 }
 };
