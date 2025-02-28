@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const nunjucks = require('nunjucks');
 const flash = require('connect-flash');
+const dateFilter = require('nunjucks-date-filter');
 const path = require('path');
 const sessionMiddleware = require('./config/session');
 const { isAuthenticated } = require('./module/auth/middleware/authMiddleware');
@@ -31,9 +32,7 @@ const env = nunjucks.configure(viewPaths, {
     watch: true
 });
 app.set('view engine', 'njk');
-env.addFilter('date', function(str) {
-    return new Date(str).toLocaleDateString();
-});
+env.addFilter('date', dateFilter);
 
 app.use(sessionMiddleware);
 app.use(flash());

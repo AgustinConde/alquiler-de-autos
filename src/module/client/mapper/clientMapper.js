@@ -15,8 +15,16 @@ exports.modelToEntity = ({
   createdAt,
   updatedAt,
   Rentals = []
-}) =>
-  new Client(
+}) => {
+  let formattedBirthDate = null;
+  if (birthDate) {
+    formattedBirthDate = new Date(birthDate);
+    if (isNaN(formattedBirthDate.getTime())) {
+      formattedBirthDate = null;
+    }
+  }
+
+  return new Client(
     Number(id),
     name,
     surname,
@@ -26,11 +34,12 @@ exports.modelToEntity = ({
     address,
     phone,
     email,
-    birthDate,
+    formattedBirthDate,
     createdAt,
     updatedAt,
-    Rentals.map(rentalModelToEntity)
+    Rentals.map(rentalModelToEntity),
   );
+};
 
 exports.formToEntity = ({
   id,
