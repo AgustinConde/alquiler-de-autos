@@ -1,4 +1,3 @@
-const { modelToEntity: rentalModelToEntity } = require('../../rental/mapper/rentalMapper');
 const Client = require('../entity/Client');
 
 exports.modelToEntity = ({
@@ -12,6 +11,7 @@ exports.modelToEntity = ({
   phone,
   email,
   birthDate,
+  role,
   createdAt,
   updatedAt,
   Rentals = []
@@ -24,21 +24,30 @@ exports.modelToEntity = ({
     }
   }
 
-  return new Client(
-    Number(id),
+  const mappedRentals = Rentals.length > 0 
+    ? Rentals.map(rental => {
+        const { modelToEntity: rentalModelToEntity } = require('../../rental/mapper/rentalMapper');
+        return rentalModelToEntity(rental);
+      })
+    : [];
+
+  return new Client({
+    id: Number(id),
     name,
     surname,
     idType,
-    Number(idNumber),
+    idNumber: Number(idNumber),
     nationality,
     address,
     phone,
     email,
-    formattedBirthDate,
+    birthDate: formattedBirthDate,
+    role,
     createdAt,
     updatedAt,
-    Rentals.map(rentalModelToEntity),
-  );
+    deletedAt: null,
+    rentals: mappedRentals
+  });
 };
 
 exports.formToEntity = ({
