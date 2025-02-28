@@ -41,7 +41,7 @@ module.exports = class Rental {
     this.formattedDates = this.formatDate();
     this.totalPrice = totalPrice;
     this.paymentMethod = paymentMethod;
-    this.isPaid = paymentProgress;
+    this.paymentProgress = paymentProgress;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.deletedAt = null;
@@ -89,5 +89,25 @@ module.exports = class Rental {
 
   get isPaid(){
     return this.paymentProgress.value === isPaid.PAID.value;
+  }
+
+  get status() {
+    if (!this.paymentProgress) return 'pending';
+    
+    if (this.paymentProgress.value === isPaid.PAID.value) {
+      return 'completed';
+    } else if (this.paymentProgress.value === isPaid.PENDING.value) {
+      return 'pending';
+    }
+    
+    return 'pending';
+  }
+
+  get startDate() {
+    return this.rentalStart;
+  }
+
+  get endDate() {
+    return this.rentalEnd;
   }
 };

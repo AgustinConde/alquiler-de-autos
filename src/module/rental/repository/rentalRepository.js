@@ -32,6 +32,23 @@ module.exports = class RentalRepository {
     return modelToEntity(rentalInstance, carModelToEntity, clientModelToEntity);
   }
 
+  /**
+ * @param {import('../entity/Rental')} rental
+ */
+async delete(rental) {
+  if (!(rental instanceof Rental)) {
+    throw new RentalNotDefinedError();
+  }
+  
+  const rentalInstance = await this.RentalModel.findByPk(rental.id);
+  if (!rentalInstance) {
+    throw new RentalNotFoundError();
+  }
+  
+  await rentalInstance.destroy();
+  return rental;
+}
+
   async getAllRentals() {
     const rentals = await this.RentalModel.findAll({
       include: [
@@ -49,17 +66,36 @@ module.exports = class RentalRepository {
     if (!Number(rentalId)) {
       throw new RentalIdNotDefinedError();
     }
+
+    const CarModel = require('../../car/model/carModel');
+    const ClientModel = require('../../client/model/clientModel');
+    const { modelToEntity: carModelToEntity } = require('../../car/mapper/carMapper');
+    const { modelToEntity: clientModelToEntity } = require('../../client/mapper/clientMapper');
+
     const rental = await this.RentalModel.findByPk(rentalId, {
       include: [
-        {model: CarModel, paranoid: false},
-        {model: ClientModel, paranoid: false},
-      ],
+        {
+          model: CarModel,
+          paranoid: false
+        },
+        {
+          model: ClientModel,
+          paranoid: false
+        }
+      ]
     });
+
     if (!rental) {
-      throw new RentalNotFoundError(
-        `Couldn't find rental with ID ${rentalId}`
-      );
+      throw new RentalNotFoundError();
     }
+    
+    console.log('🔍 Database data for rental:', {
+      id: rental.id,
+      client: rental.Client ? {
+        id: rental.Client.id,
+        name: rental.Client.name
+      } : 'No client data'
+    });
 
     return modelToEntity(rental, carModelToEntity, clientModelToEntity);
   }
@@ -71,7 +107,7 @@ module.exports = class RentalRepository {
         {model: ClientModel, paranoid: false},
       ],
       where: {
-        isPaid: {
+        paymentProgress: {
           [Op.or]: paymentProgress
         }
       }

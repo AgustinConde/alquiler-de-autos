@@ -1,6 +1,7 @@
 const { formToEntity } = require('../mapper/rentalMapper');
 const { RentalIdNotDefinedError } = require('../error/RentalError');
 const { isAuthenticated, isAdmin } = require('../../auth/middleware/authMiddleware');
+const { isPaid } = require('../entity/RentalIsPaid');
 
 module.exports = class RentalController {
   /**
@@ -13,7 +14,7 @@ module.exports = class RentalController {
     this.CarService = CarService;
     this.ClientService = ClientService;
     this.ROUTE_BASE = '/profile/rentals';
-    this.RENTAL_VIEWS = 'pages/rental/views';
+    this.RENTAL_VIEWS = 'pages/rental/';
     this.ADMIN_ROUTE = '/manage/rentals';
   }
 
@@ -77,16 +78,32 @@ module.exports = class RentalController {
    * @param {import('express').Response} res
    */
   async view(req, res) {
-    const { rentalId } = req.params;
-    if (!Number(rentalId)) {
-      throw new RentalIdNotDefinedError();
+    try {
+      const { rentalId } = req.params;
+      if (!Number(rentalId)) {
+        throw new RentalIdNotDefinedError();
+      }
+  
+      const rental = await this.RentalService.getRentalById(rentalId);
+      console.log('📋 Rental details:', {
+        id: rental.id,
+        client: rental.client, 
+        car: rental.car,
+        start: rental.rentalStart,
+        end: rental.rentalEnd,
+        paymentProgress: rental.paymentProgress
+      });
+  
+      res.render(`${this.RENTAL_VIEWS}view.njk`, {
+        title: `Viewing Rental #${rental.id}`,
+        rental,
+        isAdmin: req.session.role === 'admin'
+      });
+    } catch (error) {
+      console.error('❌ Error viewing rental:', error);
+      req.flash('error', error.message);
+      res.redirect(this.ROUTE_BASE);
     }
-
-    const rental = await this.RentalService.getRentalById(rentalId);
-    res.render(`${this.RENTAL_VIEWS}/view.njk`, {
-      title: `Viewing Rental #${rental.id}`,
-      rental,
-    });
   }
 
   /**
@@ -143,7 +160,6 @@ module.exports = class RentalController {
   }
 
   /**
- * Muestra el formulario para crear una nueva renta
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
@@ -151,20 +167,22 @@ async new(req, res) {
   try {
     const carId = req.params.carId;
     
-    // Obtener información del auto
     const car = await this.CarService.getCarById(carId);
     if (!car) {
       req.flash('error', 'Car not found');
       return res.redirect('/');
     }
     
-    // Obtener información del cliente actual
     const client = await this.ClientService.getClientById(req.session.clientId);
+    
+
+    const currentDate = new Date().toISOString().split('T')[0];
     
     res.render('pages/rental/create.njk', {
       title: 'Rent a Car',
       car,
-      client
+      client,
+      currentDate
     });
   } catch (error) {
     console.error('❌ Error loading rental form:', error);
@@ -216,7 +234,7 @@ async create(req, res) {
       rentalEnd: endDate,
       totalPrice,
       paymentMethod: req.body.paymentMethod,
-      isPaid: false
+      paymentProgress: isPaid.PENDING,
     };
     
     const rental = await this.RentalService.saveRental(rentalData);
@@ -240,10 +258,9 @@ async create(req, res) {
       req.flash('success', 'Rental deleted successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {
-      req.flash('error', 'Error deleting rental');
+      console.error('❌ Error deleting rental:', error);
+      req.flash('error', `Error deleting rental: ${error.message}`);
       res.redirect(this.ADMIN_ROUTE);
     }
   }
-
-
 };

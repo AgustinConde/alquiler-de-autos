@@ -102,6 +102,7 @@ async saveRental(rentalData) {
     );
     
     const rental = new Rental(
+      null,
       rentalData.rentedCar,
       rentalData.rentedTo,
       rentalData.pricePerDay,
@@ -109,7 +110,7 @@ async saveRental(rentalData) {
       rentalData.rentalEnd,
       rentalData.totalPrice,
       rentalData.paymentMethod,
-      isPaid.PENDING,
+      rentalData.paymentProgress || isPaid.PENDING,
       null,
       null,
       {}, 
@@ -177,5 +178,21 @@ async checkCarAvailability(carId, startDate, endDate) {
     } catch (error) {
       throw new Error(error.message);
     }
+  }
+
+  /**
+   * @param {number} rentalId
+   */
+  async delete(rentalId) {
+    if (!Number(rentalId)) {
+      throw new RentalIdNotDefinedError();
+    }
+    
+    const rental = await this.RentalRepository.getRentalById(rentalId);
+    if (!rental) {
+      throw new RentalNotFoundError();
+    }
+    
+    return this.RentalRepository.delete(rental);
   }
 };
