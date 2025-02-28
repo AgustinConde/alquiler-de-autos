@@ -1,5 +1,7 @@
-const RentalModel = require("../../rental/model/rentalModel");
 const { RentalNotDefinedError, RentalIdNotDefinedError, RentalNotFoundError } = require('../error/RentalError');
+const Rental = require('../entity/Rental');
+const { isPaid } = require('../entity/RentalIsPaid');
+
 
 module.exports = class RentalService {
   /**
@@ -88,22 +90,18 @@ module.exports = class RentalService {
   }
 
   /**
- * Guarda una nueva renta
- * @param {Object} rentalData Datos de la renta
- * @returns {Promise<Rental>} Renta creada
+ * @param {Object} rentalData
+ * @returns {Promise<Rental>}
  */
 async saveRental(rentalData) {
   try {
-    // Verificar disponibilidad del auto entre las fechas seleccionadas
     await this.checkCarAvailability(
       rentalData.rentedCar, 
       rentalData.rentalStart, 
       rentalData.rentalEnd
     );
     
-    // Crear la entidad de rental con los datos
     const rental = new Rental(
-      null, // id (null para nueva renta)
       rentalData.rentedCar,
       rentalData.rentedTo,
       rentalData.pricePerDay,
@@ -111,11 +109,11 @@ async saveRental(rentalData) {
       rentalData.rentalEnd,
       rentalData.totalPrice,
       rentalData.paymentMethod,
-      isPaid.PENDING, // Estado inicial: pendiente
-      null, // createdAt (se genera automáticamente)
-      null, // updatedAt (se genera automáticamente)
-      {}, // car (vacío, se llena después)
-      {}  // client (vacío, se llena después)
+      isPaid.PENDING,
+      null,
+      null,
+      {}, 
+      {}  
     );
     
     return this.RentalRepository.save(rental);
