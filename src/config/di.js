@@ -119,7 +119,10 @@ function addRentalModuleDefinitions(container) {
     RentalSequelize: object(configureRentalSequelize),
     RentalModel: factory(configureRentalModule),
     RentalRepository: object(RentalRepository).construct(get('RentalModel')),
-    RentalService: object(RentalService).construct(get('RentalRepository')),
+    RentalService: object(RentalService).construct(
+      get('RentalRepository'),
+      get('CarRepository')
+    ),
     RentalController: object(RentalController).construct(
       get('RentalService'),
       get('CarService'),

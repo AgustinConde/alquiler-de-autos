@@ -87,6 +87,72 @@ module.exports = class RentalService {
     return this.RentalRepository.getRentalById(rentalId);
   }
 
+  /**
+ * Guarda una nueva renta
+ * @param {Object} rentalData Datos de la renta
+ * @returns {Promise<Rental>} Renta creada
+ */
+async saveRental(rentalData) {
+  try {
+    // Verificar disponibilidad del auto entre las fechas seleccionadas
+    await this.checkCarAvailability(
+      rentalData.rentedCar, 
+      rentalData.rentalStart, 
+      rentalData.rentalEnd
+    );
+    
+    // Crear la entidad de rental con los datos
+    const rental = new Rental(
+      null, // id (null para nueva renta)
+      rentalData.rentedCar,
+      rentalData.rentedTo,
+      rentalData.pricePerDay,
+      rentalData.rentalStart,
+      rentalData.rentalEnd,
+      rentalData.totalPrice,
+      rentalData.paymentMethod,
+      isPaid.PENDING, // Estado inicial: pendiente
+      null, // createdAt (se genera automáticamente)
+      null, // updatedAt (se genera automáticamente)
+      {}, // car (vacío, se llena después)
+      {}  // client (vacío, se llena después)
+    );
+    
+    return this.RentalRepository.save(rental);
+  } catch (error) {
+    throw new Error(`Failed to create rental: ${error.message}`);
+  }
+}
+
+/**
+ * @param {number} carId 
+ * @param {string} startDate
+ * @param {string} endDate
+ */
+async checkCarAvailability(carId, startDate, endDate) {
+  const rentals = await this.RentalRepository.getRentalsByCarId(carId);
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  const conflictingRental = rentals.find(rental => {
+    const rentalStart = new Date(rental.rentalStart);
+    const rentalEnd = new Date(rental.rentalEnd);
+    
+    return (
+      (start >= rentalStart && start <= rentalEnd) || 
+      (end >= rentalStart && end <= rentalEnd) ||     
+      (start <= rentalStart && end >= rentalEnd)
+    );
+  });
+  
+  if (conflictingRental) {
+    throw new Error('This car is not available for the selected dates');
+  }
+  
+  return true;
+}
+
   async cancelRental(rentalId, clientId) {
     if (!Number(rentalId)) {
       throw new RentalIdNotDefinedError();

@@ -79,4 +79,30 @@ module.exports = class RentalRepository {
 
     return rentals.map((rental) => modelToEntity(rental, carModelToEntity, clientModelToEntity));
   }
+
+
+
+  /**
+ * @param {number} carId
+ */
+async getRentalsByCarId(carId) {
+  if (!Number(carId)) {
+    throw new Error('Invalid car ID');
+  }
+  
+  const rentals = await this.RentalModel.findAll({
+    where: {
+      rentedCar: carId,
+      deletedAt: null
+    },
+    include: [
+      {model: CarModel, paranoid: false},
+      {model: ClientModel, paranoid: false}
+    ]
+  });
+  
+  return rentals.map(rental => 
+    modelToEntity(rental, carModelToEntity, clientModelToEntity)
+  );
+}
 };

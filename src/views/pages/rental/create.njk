@@ -1,0 +1,107 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8-tablet is-6-desktop">
+        <div class="box">
+          <h1 class="title has-text-centered">Rent a Car</h1>
+          
+          {% if flash.error %}
+          <div class="notification is-danger">
+            {{ flash.error }}
+          </div>
+          {% endif %}
+          
+          <div class="card mb-5">
+            <div class="card-content">
+              <h2 class="title is-5">Car Details</h2>
+              
+              <div class="columns">
+                <div class="column is-4">
+                  {% if car.image %}
+                    <figure class="image is-4by3">
+                      <img src="{{ car.image }}" alt="{{ car.brand }} {{ car.model }}">
+                    </figure>
+                  {% else %}
+                    <figure class="image is-4by3 has-background-grey-lighter">
+                      <div class="is-flex is-align-items-center is-justify-content-center" style="height: 100%;">
+                        <span class="icon is-large">
+                          <i class="fas fa-car fa-3x"></i>
+                        </span>
+                      </div>
+                    </figure>
+                  {% endif %}
+                </div>
+                <div class="column">
+                  <p class="title is-4">{{ car.brand }} {{ car.model }}</p>
+                  <p><strong>Year:</strong> {{ car.year }}</p>
+                  <p><strong>Color:</strong> {{ car.colour }}</p>
+                  <p><strong>Transmission:</strong> {{ car.transmission }}</p>
+                  <p><strong>Price per day:</strong> ${{ car.pricePerDay }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <form action="/rent/{{ car.id }}" method="POST">
+            <div class="field">
+              <label class="label">Client</label>
+              <div class="control">
+                <input class="input" type="text" value="{{ client.name }} {{ client.surname }}" readonly>
+                <input type="hidden" name="clientId" value="{{ client.id }}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Start Date</label>
+              <div class="control">
+                <input class="input" type="date" name="startDate" required min="{{ "now" | date("YYYY-MM-DD") }}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">End Date</label>
+              <div class="control">
+                <input class="input" type="date" name="endDate" required min="{{ "now" | date("YYYY-MM-DD") }}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Payment Method</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select name="paymentMethod" required>
+                    <option value="Card">Card</option>
+                    <option value="Cash">Cash</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field is-grouped is-grouped-centered">
+              <p class="control">
+                <button type="submit" class="button is-primary">
+                  <span class="icon">
+                    <i class="fas fa-check"></i>
+                  </span>
+                  <span>Confirm Rental</span>
+                </button>
+              </p>
+              <p class="control">
+                <a href="/" class="button is-light">
+                  <span class="icon">
+                    <i class="fas fa-times"></i>
+                  </span>
+                  <span>Cancel</span>
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
