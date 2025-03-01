@@ -50,7 +50,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 52px;
+  padding-top: 0;
 }
 
 .page-content {
@@ -60,6 +60,9 @@ body {
 .navbar {
   background-color: var(--navbar-bg);
   border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 30;
 }
 
 .navbar-item,
@@ -96,7 +99,7 @@ body {
 
 .hero.is-primary {
   background: var(--hero-gradient);
-  margin-top: 2rem;
+  margin-top: 0;
   padding: 3rem 1.5rem;
   position: relative;
 }
@@ -157,7 +160,7 @@ body {
 }
 
 .table th {
-  color: var(--text-color);
+  color: var (--text-color);
   background-color: var(--table-header-bg);
   border-color: var(--border-color);
 }
