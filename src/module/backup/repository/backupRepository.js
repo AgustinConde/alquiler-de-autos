@@ -1,6 +1,44 @@
+const fs = require('fs');
+const path = require('path');
+const RentalModel = require('../../rental/model/rentalModel');
+
 module.exports = class BackupRepository {
-  constructor(backupModel) {
+  constructor(backupModel, carModel, rentalModel) {
     this.backupModel = backupModel;
+    this.CarModel = carModel;
+    this.RentalModel = rentalModel;
+  }
+
+  /**
+   * @param {number} carId 
+   */
+  async backupByCarId(carId) {
+    try {
+      const car = await this.CarModel.findByPk(carId, {
+        include: [this.RentalModel]
+      });
+
+      if (!car) {
+        throw new Error(`Car with ID ${carId} not found for backup`);
+      }
+
+      const backupData = {
+        entityType: 'car',
+        entityId: carId,
+        data: car.toJSON(),
+      };
+
+      console.log('📋 Backup data:', backupData);
+
+      const backup = await this.backupModel.create(backupData);
+      
+      console.log(`✓ Backup created for car ID ${carId}, backup ID: ${backup.id}`);
+      
+      return backup;
+    } catch (error) {
+      console.error(`❌ Error creating backup for car ID ${carId}:`, error);
+      throw new Error(`Failed to create backup: ${error.message}`);
+    }
   }
 
   async create(backupData) {
@@ -13,6 +51,9 @@ module.exports = class BackupRepository {
     });
   }
 
+  /**
+   * @param {number} id
+   */
   async getById(id) {
     return this.backupModel.findByPk(id);
   }

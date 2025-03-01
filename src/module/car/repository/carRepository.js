@@ -2,14 +2,15 @@ const { modelToEntity } = require('../mapper/carMapper');
 const Car = require('../entity/Car');
 const { CarNotDefinedError, CarIdNotDefinedError, CarNotFoundError } = require('../error/carError');
 const RentalModel = require('../../rental/model/rentalModel');
-const BackupRepository = require('../../backup/repository/backupRepository');
 
 module.exports = class CarRepository {
   /**
    * @param {typeof import('../model/carModel')} carModel
+   * @param {import('../../backup/repository/backupRepository')} backupRepository
    */
-  constructor(carModel) {
+  constructor(carModel, backupRepository) {
     this.carModel = carModel;
+    this.backupRepository = backupRepository;
   }
 
   /**
@@ -62,17 +63,45 @@ module.exports = class CarRepository {
 
   /**
    * @param {import('../entity/Car')} car
-   * @returns {Promise<Boolean>}
    */
   async delete(car) {
     if (!(car instanceof Car)) {
       throw new CarNotDefinedError();
     }
 
-    await BackupRepository.backupByCarId(car.id);
+    const carModel = await this.carModel.findByPk(car.id, {
+      include: [RentalModel]
+    });
 
-    const deleted = await this.carModel.destroy({ where: { id: car.id } });
+    if (carModel.Rentals && carModel.Rentals.length > 0) {
+      const activeRentals = carModel.Rentals.filter(rental => {
+        const endDate = new Date(rental.rentalEnd);
+        return endDate >= new Date();
+      });
+      
+      if (activeRentals.length > 0) {
+        throw new Error('Cannot delete car with active rentals');
+      }
+    }
 
-    return Boolean(deleted);
+    console.log(`✅ Carro ${car.id} puede ser eliminado. Creando backup...`);
+    await this.backupRepository.backupByCarId(car.id);
+
+    await carModel.destroy();
+    return car;
+  }
+
+  /**
+   * @param {Object} carData
+   */
+  async createFromBackup(carData) {
+    try {
+      const car = await this.carModel.create(carData);
+      
+      return modelToEntity(car);
+    } catch (error) {
+      console.error('Error restoring car from backup:', error);
+      throw new Error(`Failed to restore car: ${error.message}`);
+    }
   }
 };

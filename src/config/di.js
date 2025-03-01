@@ -93,7 +93,10 @@ function addCommonDefinitions(container) {
 function addCarModuleDefinitions(container) {
   container.addDefinitions({
     CarModel: factory(configureCarModule),
-    CarRepository: object(CarRepository).construct(get('CarModel')),
+    CarRepository: object(CarRepository).construct(
+      get('CarModel'),
+      get('BackupRepository')
+    ),
     CarService: object(CarService).construct(get('CarRepository')),
     CarController: object(CarController).construct(get('CarService'))
   });
@@ -151,8 +154,17 @@ function addAuthModuleDefinitions(container) {
 function addBackupModuleDefinitions(container) {
   container.addDefinitions({
     BackupModel: factory(configureBackupModule),
-    BackupRepository: object(BackupRepository).construct(get('BackupModel')),
-    BackupService: object(BackupService).construct(get('BackupRepository')),
+    BackupRepository: object(BackupRepository).construct(
+      get('BackupModel'),
+      get('CarModel'),
+      get('RentalModel')
+    ),
+    BackupService: object(BackupService).construct(
+      get('BackupRepository'),
+      get('CarRepository'),
+      get('ClientRepository'),
+      get('RentalRepository')
+    ),
     BackupController: object(BackupController).construct(get('BackupService'))
   });
 }

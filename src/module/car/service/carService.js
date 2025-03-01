@@ -1,5 +1,6 @@
 const Car = require('../entity/Car');
 const { CarNotDefinedError, CarIdNotDefinedError } = require('../error/carError');
+const Rental = require('../../rental/entity/Rental');
 
 module.exports = class CarService {
   /**
@@ -54,17 +55,20 @@ module.exports = class CarService {
     return this.carRepository.delete(car);
   }
 
-  async delete(id) {
-    const car = await Car.findByPk(id, {
-      include: [{ model: Rental }]
-    });
-
-    if (!car) throw new Error('Car not found');
-
-    if (car.Rentals.length > 0) {
-      await this.backupService.createBackup('car', id, car.Rentals);
+  /**
+   * @param {number} carId
+   */
+  async delete(carId) {
+    if (!Number(carId)) {
+      throw new Error('Car ID not defined');
     }
 
-    await car.destroy();
+    const car = await this.carRepository.getCarById(carId);
+    
+    if (car.rentals && car.rentals.some(rental => rental instanceof Rental && rental.status === 'active')) {
+      throw new Error('Cannot delete a car that is currently being rented');
+    }
+    
+    return this.carRepository.delete(car);
   }
 };
