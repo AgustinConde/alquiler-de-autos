@@ -93,6 +93,8 @@ module.exports = class CarController {
       if (req.file) {
         imageUrl = `/uploads/${req.file.filename}`;
         console.log('✅ Image uploaded, URL:', imageUrl);
+      } else {
+        imageUrl = '/uploads/default_car.png';
       }
       
       const carData = {
@@ -142,6 +144,8 @@ module.exports = class CarController {
       
       if (req.file) {
         carData.image = `/uploads/${req.file.filename}`;
+      } else if (!existingCar.image) {
+        carData.image = '/uploads/default_car.png';
       }
       
       const car = formToEntity(carData);
