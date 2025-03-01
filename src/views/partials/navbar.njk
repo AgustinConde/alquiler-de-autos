@@ -36,15 +36,31 @@
                 {% if isAuthenticated %}
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">
-                            <span class="icon">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <span>{{ auth.username }}</span>
+                        <span class="icon">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <span>My Account</span>
                         </a>
-                        <div class="navbar-dropdown is-right">
-                            <a class="navbar-item" href="/profile">Profile</a>
-                            <hr class="navbar-divider">
-                            <a class="navbar-item" href="/auth/logout">Logout</a>
+                        <div class="navbar-dropdown">
+                        <a class="navbar-item" href="/profile">
+                            <span class="icon">
+                            <i class="fas fa-id-card"></i>
+                            </span>
+                            <span>Profile</span>
+                        </a>
+                        <a class="navbar-item" href="/profile/rentals">
+                            <span class="icon">
+                            <i class="fas fa-car"></i>
+                            </span>
+                            <span>My Rentals</span>
+                        </a>
+                        <hr class="navbar-divider">
+                        <a class="navbar-item" href="/auth/logout">
+                            <span class="icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                            </span>
+                            <span>Logout</span>
+                        </a>
                         </div>
                     </div>
                 {% else %}

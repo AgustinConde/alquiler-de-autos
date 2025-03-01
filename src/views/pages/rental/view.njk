@@ -86,19 +86,19 @@
 
                     <div class="field is-grouped is-grouped-centered mt-5">
                         <p class="control">
-                            {% if isAdmin %}
+                            {% if from == 'manage' %}
                                 <a href="/manage/rentals" class="button is-light">
                                     <span class="icon">
                                         <i class="fas fa-arrow-left"></i>
                                     </span>
-                                    <span>Back</span>
+                                    <span>Back to Management</span>
                                 </a>
                             {% else %}
                                 <a href="/profile/rentals" class="button is-light">
                                     <span class="icon">
                                         <i class="fas fa-arrow-left"></i>
                                     </span>
-                                    <span>Back</span>
+                                    <span>Back to My Rentals</span>
                                 </a>
                             {% endif %}
                         </p>

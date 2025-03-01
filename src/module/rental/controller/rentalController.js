@@ -23,11 +23,15 @@ module.exports = class RentalController {
    */
   configureRoutes(app) {
     const ROUTE = this.ADMIN_ROUTE;
+    
     // Public routes
-    app.get(this.ROUTE_BASE, isAuthenticated, this.manage.bind(this));
+    app.get(this.ROUTE_BASE, isAuthenticated, this.clientRentals.bind(this));
     app.get(`${this.ROUTE_BASE}/view/:rentalId`, isAuthenticated, this.view.bind(this));
     app.get('/rent/:carId', isAuthenticated, this.new.bind(this));
     app.post('/rent/:carId', isAuthenticated, this.create.bind(this));
+    app.post(`${this.ROUTE_BASE}/cancel/:id`, isAuthenticated, this.cancelRental.bind(this));
+    
+
     app.get(`${this.ROUTE_BASE}/edit/:rentalId`, isAuthenticated, this.edit.bind(this));
     app.get(`${this.ROUTE_BASE}/add`, isAuthenticated, this.add.bind(this));
     app.post(`${this.ROUTE_BASE}/save`, isAuthenticated, this.save.bind(this));
@@ -85,19 +89,15 @@ module.exports = class RentalController {
       }
   
       const rental = await this.RentalService.getRentalById(rentalId);
-      console.log('📋 Rental details:', {
-        id: rental.id,
-        client: rental.client, 
-        car: rental.car,
-        start: rental.rentalStart,
-        end: rental.rentalEnd,
-        paymentProgress: rental.paymentProgress
-      });
+      
+      const from = req.query.from || 'profile';
+      console.log(`📍 Vista de alquiler accedida desde: ${from}`);
   
       res.render(`${this.RENTAL_VIEWS}view.njk`, {
         title: `Viewing Rental #${rental.id}`,
         rental,
-        isAdmin: req.session.role === 'admin'
+        isAdmin: req.session.role === 'admin',
+        from: from
       });
     } catch (error) {
       console.error('❌ Error viewing rental:', error);
@@ -111,16 +111,23 @@ module.exports = class RentalController {
    * @param {import('express').Response} res
    */
   async edit(req, res) {
-    const { rentalId } = req.params;
-    if (!Number(rentalId)) {
-      throw new RentalIdNotDefinedError();
+    try {
+      const rentalId = req.params.id || req.params.rentalId;
+      
+      if (!Number(rentalId)) {
+        throw new RentalIdNotDefinedError();
+      }
+  
+      const rental = await this.RentalService.getRentalById(rentalId);
+      res.render(`${this.RENTAL_VIEWS}edit.njk`, {
+        title: `Editing Rental #${rental.id}`,
+        rental,
+      });
+    } catch (error) {
+      console.error('❌ Error editing rental:', error);
+      req.flash('error', error.message);
+      res.redirect(this.ADMIN_ROUTE);
     }
-
-    const rental = await this.RentalService.getRentalById(rentalId);
-    res.render(`${this.RENTAL_VIEWS}/edit.njk`, {
-      title: `Editing Rental #${rental.id}`,
-      rental,
-    });
   }
 
   /**
@@ -248,19 +255,69 @@ async create(req, res) {
   }
 }
 
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
-  async delete(req, res) {
-    try {
-      await this.RentalService.delete(req.params.id);
-      req.flash('success', 'Rental deleted successfully');
-      res.redirect(this.ADMIN_ROUTE);
-    } catch (error) {
-      console.error('❌ Error deleting rental:', error);
-      req.flash('error', `Error deleting rental: ${error.message}`);
-      res.redirect(this.ADMIN_ROUTE);
-    }
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async delete(req, res) {
+  try {
+    await this.RentalService.delete(req.params.id);
+    req.flash('success', 'Rental deleted successfully');
+    res.redirect(this.ADMIN_ROUTE);
+  } catch (error) {
+    console.error('❌ Error deleting rental:', error);
+    req.flash('error', `Error deleting rental: ${error.message}`);
+    res.redirect(this.ADMIN_ROUTE);
   }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async clientRentals(req, res) {
+  try {
+    const clientId = req.session.clientId;
+    if (!clientId) {
+      req.flash('error', 'You must be logged in to view your rentals');
+      return res.redirect('/auth/login');
+    }
+
+    const rentals = await this.RentalService.getRentalsByClientId(clientId);
+    
+    res.render('pages/rental/client-rentals.njk', {
+      title: 'My Rentals',
+      rentals
+    });
+  } catch (error) {
+    console.error('❌ Error loading client rentals:', error);
+    req.flash('error', error.message);
+    res.redirect('/');
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async cancelRental(req, res) {
+  try {
+    const rentalId = req.params.id;
+    const clientId = req.session.clientId;
+    
+    if (!clientId) {
+      req.flash('error', 'You must be logged in to cancel a rental');
+      return res.redirect('/auth/login');
+    }
+
+    const result = await this.RentalService.cancelRental(rentalId, clientId);
+    
+    req.flash('success', result.message);
+    res.redirect('/profile/rentals');
+  } catch (error) {
+    console.error('❌ Error cancelling rental:', error);
+    req.flash('error', error.message);
+    res.redirect('/profile/rentals');
+  }
+}
 };

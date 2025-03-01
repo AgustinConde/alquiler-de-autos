@@ -62,6 +62,11 @@
                                             <i class="fas fa-edit"></i>
                                         </span>
                                     </a>
+                                    <a href="/manage/rentals/{{ rental.id }}/view?from=manage" class="button is-info" title="View Details">
+                                        <span class="icon">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </a>
                                     {% if rental.status === 'active' %}
                                         <form action="/manage/rentals/{{ rental.id }}/complete" method="POST" style="display: inline;">
                                             <button type="submit" class="button is-success" title="Complete Rental">

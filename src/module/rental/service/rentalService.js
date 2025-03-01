@@ -195,4 +195,15 @@ async checkCarAvailability(carId, startDate, endDate) {
     
     return this.RentalRepository.delete(rental);
   }
+
+  /**
+   * @param {number} clientId
+   */
+  async getRentalsByClientId(clientId) {
+    if (!Number(clientId)) {
+      throw new Error('Client ID is not valid');
+    }
+    
+    return this.RentalRepository.getRentalsByClientId(clientId);
+  }
 };
