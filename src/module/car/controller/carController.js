@@ -29,6 +29,7 @@ module.exports = class CarController {
     app.get(`${this.ADMIN_ROUTE}/:id/edit`, isAdmin, this.edit.bind(this));
     app.post(`${this.ADMIN_ROUTE}/:id/edit`, isAdmin, upload.single('image'), this.update.bind(this));
     app.post(`${this.ADMIN_ROUTE}/:id/delete`, isAdmin, this.delete.bind(this));
+    app.post(`${this.ADMIN_ROUTE}/:id/restore`, isAdmin, this.restore.bind(this));
   }
 
   async index(req, res) {
@@ -67,7 +68,12 @@ module.exports = class CarController {
 
   async adminIndex(req, res) {
     try {
-      const cars = await this.carService.getAllCars();
+      const showDeleted = req.query.showDeleted === 'true';
+
+      const cars = showDeleted
+      ? await this.carService.getUnfilteredCars() 
+      : await this.carService.getAllCars();
+
       res.render('pages/manage/cars/index.njk', {
         title: 'Manage Cars',
         cars
@@ -169,6 +175,19 @@ module.exports = class CarController {
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {
       req.flash('error', error.message);
+      res.redirect(this.ADMIN_ROUTE);
+    }
+  }
+
+  async restore(req, res) {
+    try {
+      const { id } = req.params;
+      await this.carService.restoreCar(id);
+      req.flash('success', 'Car restored successfully');
+      res.redirect(this.ADMIN_ROUTE);
+    } catch (error) {
+      console.error('❌ Error restoring car:', error);
+      req.flash('error', error.message || 'Error restoring car');
       res.redirect(this.ADMIN_ROUTE);
     }
   }

@@ -33,6 +33,13 @@ module.exports = class CarRepository {
     return cars.map((car) => modelToEntity(car));
   }
 
+  async getUnfilteredCars() {
+    const cars = await this.carModel.findAll({
+      paranoid: false
+    });
+    return cars.map(car => modelToEntity(car));
+  }
+
   async getCarsLength() {
     return this.carModel.count();
   }
@@ -44,22 +51,43 @@ module.exports = class CarRepository {
     return modelToEntity(lastCar);
   }
 
+  
   /**
    * @param {number} carId
    * @returns {Promise<import('../entity/Car')>}
    */
-  async getCarById(carId) {
+  async getUnfilteredCarById(carId) {
     if (!Number(carId)) {
       throw new CarIdNotDefinedError();
     }
 
-    const car = await this.carModel.findByPk(carId, { include: RentalModel });
+    const car = await this.carModel.findByPk(carId, { 
+      include: RentalModel,
+      paranoid: false, 
+    });
     if (!car) {
       throw new CarNotFoundError(`Car with ID ${carId} not found.`);
     }
 
     return modelToEntity(car);
   }
+
+    /**
+   * @param {number} carId
+   * @returns {Promise<import('../entity/Car')>}
+   */
+    async getCarById(carId) {
+      if (!Number(carId)) {
+        throw new CarIdNotDefinedError();
+      }
+  
+      const car = await this.carModel.findByPk(carId, { include: RentalModel });
+      if (!car) {
+        throw new CarNotFoundError(`Car with ID ${carId} not found.`);
+      }
+  
+      return modelToEntity(car);
+    }
 
   /**
    * @param {import('../entity/Car')} car
@@ -84,12 +112,36 @@ module.exports = class CarRepository {
       }
     }
 
-    console.log(`✅ Carro ${car.id} puede ser eliminado. Creando backup...`);
+    console.log(`✅ Car ${car.id} succesfully deleted. Creating backup...`);
     await this.backupRepository.backupByCarId(car.id);
 
     await carModel.destroy();
     return car;
   }
+
+  /**
+ * @param {number} carId
+ */
+async restore(carId) {
+  if (!Number(carId)) {
+    throw new CarIdNotDefinedError();
+  }
+
+  const carInstance = await this.carModel.findByPk(carId, {
+    paranoid: false
+  });
+  
+  if (!carInstance) {
+    throw new CarNotFoundError(`Car with ID ${carId} not found.`);
+  }
+  
+  if (!carInstance.deletedAt) {
+    throw new Error('Car is not deleted.');
+  }
+  
+  await carInstance.restore();
+  return modelToEntity(carInstance);
+}
 
   /**
    * @param {Object} carData

@@ -25,6 +25,10 @@ module.exports = class CarService {
     return this.carRepository.getAllCars();
   }
 
+  async getUnfilteredCars() {
+    return this.carRepository.getUnfilteredCars();
+  }
+
   async getCarsLength() {
     return this.carRepository.getCarsLength();
   }
@@ -44,16 +48,37 @@ module.exports = class CarService {
     return this.carRepository.getCarById(carId);
   }
 
+    /**
+   * @param {number} carId
+   * @returns {Promise<Car>}
+   */
+    async getUnfilteredCarById(carId) {
+      if (!Number(carId)) {
+        throw new CarIdNotDefinedError();
+      }
+      return this.carRepository.getUnfilteredCarById(carId);
+    }
+
   /**
    * @param {import('../entity/Car')} car
    */
-  async deleteCar(car) {
+  async delete(car) {
     if (!(car instanceof Car)) {
       throw new CarNotDefinedError();
     }
 
     return this.carRepository.delete(car);
   }
+
+  /**
+ * @param {number} carId
+ */
+async restore(carId) {
+  if (!Number(carId)) {
+    throw new CarIdNotDefinedError();
+  }
+  return this.carRepository.restore(carId);
+}
 
   /**
    * @param {number} carId
