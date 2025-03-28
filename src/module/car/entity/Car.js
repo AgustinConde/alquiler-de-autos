@@ -5,7 +5,7 @@ module.exports = class Car {
      * @param {string} model
      * @param {number} year
      * @param {number} mileage
-     * @param {string} colour
+     * @param {string} color
      * @param {string} ac
      * @param {number} capacity
      * @param {string} transmission
@@ -22,7 +22,7 @@ module.exports = class Car {
       model,
       year,
       mileage,
-      colour,
+      color,
       ac,
       capacity,
       transmission,
@@ -38,7 +38,7 @@ module.exports = class Car {
       this.model = model;
       this.year = year;
       this.mileage = mileage;
-      this.colour = colour;
+      this.color = color;
       this.ac = ac;
       this.capacity = capacity;
       this.transmission = transmission;

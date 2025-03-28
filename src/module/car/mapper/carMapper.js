@@ -7,7 +7,7 @@ exports.modelToEntity = ({
     model,
     year,
     mileage,
-    colour,
+    color,
     ac,
     capacity,
     transmission,
@@ -24,7 +24,7 @@ exports.modelToEntity = ({
     model,
     Number(year),
     Number(mileage),
-    colour,
+    color,
     ac,
     Number(capacity),
     transmission,
@@ -42,7 +42,7 @@ exports.formToEntity = ({
   model,
   year,
   mileage,
-  colour,
+  color,
   ac,
   capacity,
   transmission,
@@ -50,5 +50,5 @@ exports.formToEntity = ({
   image,
   'created-at': createdAt,
 }) =>
-  new Car(id, brand, model, year, mileage, colour, ac, capacity, transmission, pricePerDay, image, createdAt);
+  new Car(id, brand, model, year, mileage, color, ac, capacity, transmission, pricePerDay, image, createdAt);
   

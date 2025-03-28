@@ -100,12 +100,12 @@ module.exports = class CarController {
         imageUrl = `/uploads/${req.file.filename}`;
         console.log('✅ Image uploaded, URL:', imageUrl);
       } else {
-        imageUrl = '/uploads/default_car.png';
+        imageUrl = '/uploads/default_car.jpg';
       }
       
       const carData = {
         ...req.body,
-        colour: req.body.color,
+        color: req.body.color,
         image: imageUrl
       };
       
@@ -144,14 +144,14 @@ module.exports = class CarController {
       const carData = {
         ...req.body,
         id,
-        colour: req.body.color,
+        color: req.body.color,
         image: existingCar.image
       };
       
       if (req.file) {
         carData.image = `/uploads/${req.file.filename}`;
       } else if (!existingCar.image) {
-        carData.image = '/uploads/default_car.png';
+        carData.image = '/uploads/default_car.jpg';
       }
       
       const car = formToEntity(carData);
