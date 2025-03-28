@@ -191,14 +191,4 @@ module.exports = class CarController {
       res.redirect(this.ADMIN_ROUTE);
     }
   }
-
-  async save(req, res) {
-    const car = formToEntity(req.body);
-    if (req.file) {
-      const path = req.file.path.split('public')[1];
-      car.img = path;
-    }
-    await this.carService.save(car);
-    res.redirect(this.ROUTE_BASE);
-  }
 };

@@ -25,16 +25,12 @@ module.exports = class RentalController {
     const ROUTE = this.ADMIN_ROUTE;
     
     // Public routes
-    app.get(this.ROUTE_BASE, isAuthenticated, this.clientRentals.bind(this));
+    app.get(this.ROUTE_BASE, isAuthenticated, this.getClientRentals.bind(this));
     app.get(`${this.ROUTE_BASE}/view/:rentalId`, isAuthenticated, this.view.bind(this));
     app.get('/rent/:carId', isAuthenticated, this.new.bind(this));
     app.post('/rent/:carId', isAuthenticated, this.create.bind(this));
-    app.post(`${this.ROUTE_BASE}/cancel/:id`, isAuthenticated, this.cancelRental.bind(this));
-    
-
+    app.post(`${this.ROUTE_BASE}/cancel/:id`, isAuthenticated, this.cancel.bind(this));
     app.get(`${this.ROUTE_BASE}/edit/:rentalId`, isAuthenticated, this.edit.bind(this));
-    app.get(`${this.ROUTE_BASE}/add`, isAuthenticated, this.add.bind(this));
-    app.post(`${this.ROUTE_BASE}/save`, isAuthenticated, this.save.bind(this));
 
     // Admin routes
     app.get(`${ROUTE}`, isAdmin, this.adminIndex.bind(this));
@@ -43,22 +39,6 @@ module.exports = class RentalController {
     app.post(`${ROUTE}/:id/delete`, isAdmin, this.delete.bind(this));
   }
 
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
-  async manage(req, res) {
-    try {
-      const rentals = await this.RentalService.getRentalById(req.user.id);
-      res.render(`${this.RENTAL_VIEWS}/view.njk`, {
-        title: 'My Rentals',
-        rentals
-      });
-    } catch (error) {
-      req.flash('error', 'Error loading rentals');
-      res.redirect('/');
-    }
-  }
 
   /**
    * @param {import('express').Request} req
@@ -129,27 +109,6 @@ module.exports = class RentalController {
       res.redirect(this.ADMIN_ROUTE);
     }
   }
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
-  async add(req, res) {
-    res.render(`${this.RENTAL_VIEWS}/add.njk`, {
-      title: 'Add New Rental',
-    });
-  }
-
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   */
-  async save(req, res) {
-    const rental = formToEntity(req.body);
-    await this.RentalService.save(rental);
-    res.redirect(`${this.ROUTE_BASE}/manage`);
-  }
-
 
   /**
    * @param {import('express').Request} req
@@ -275,7 +234,7 @@ async delete(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async clientRentals(req, res) {
+async getClientRentals(req, res) {
   try {
     const clientId = req.session.clientId;
     if (!clientId) {
@@ -300,7 +259,7 @@ async clientRentals(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-async cancelRental(req, res) {
+async cancel(req, res) {
   try {
     const rentalId = req.params.id;
     const clientId = req.session.clientId;

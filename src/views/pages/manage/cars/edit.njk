@@ -49,7 +49,7 @@
                         <div class="field">
                             <label class="label">Color</label>
                             <div class="control">
-                                <input class="input" type="text" name="color" value="{{ car.colour }}" required>
+                                <input class="input" type="text" name="color" value="{{ car.color }}" required>
                             </div>
                         </div>
 
@@ -102,7 +102,11 @@
                                         </span>
                                     </span>
                                     <span class="file-name">
-                                        {% if car.image %}Current: {{ car.image }}{% else %}No file selected{% endif %}
+                                        {% if car.image %}
+                                            {{ car.image.split('/').pop() }}
+                                        {% else %}
+                                            No file selected
+                                        {% endif %}
                                     </span>
                                 </label>
                             </div>
@@ -138,17 +142,46 @@
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.querySelector('.file-input');
+    const fileInput = document.querySelector('input[type="file"][name="image"]');
     const fileName = document.querySelector('.file-name');
+    const currentImage = '{{ car.image }}';
     
     if (fileInput && fileName) {
-      fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-          fileName.textContent = fileInput.files[0].name;
+  
+      if (currentImage && currentImage !== 'null') {
+        const imageName = currentImage.split('/').pop();
+        fileName.textContent = imageName || 'No file selected';
+      } else {
+        fileName.textContent = 'No file selected';
+      }
+      
+      fileInput.onchange = function() {
+        if (this.files && this.files.length > 0) {
+          console.log('Archivo seleccionado:', this.files[0].name);
+          fileName.textContent = this.files[0].name;
+        } else if (currentImage && currentImage !== 'null') {
+          const imageName = currentImage.split('/').pop();
+          fileName.textContent = imageName || 'No file selected';
         } else {
-          fileName.textContent = '{% if car.image %}Current: {{ car.image }}{% else %}No file selected{% endif %}';
+          fileName.textContent = 'No file selected';
         }
+      };
+      
+      document.addEventListener('click', function() {
+        setTimeout(() => {
+          if (fileInput.files.length === 0 && fileName.textContent !== 'No file selected' && 
+              !fileName.textContent.includes(currentImage.split('/').pop())) {
+            if (currentImage && currentImage !== 'null') {
+              const imageName = currentImage.split('/').pop();
+              fileName.textContent = imageName || 'No file selected';
+            } else {
+              fileName.textContent = 'No file selected';
+            }
+          }
+        }, 100);
       });
+    } else {
+      console.error('No se pudieron encontrar los elementos de archivo');
     }
   });
 </script>

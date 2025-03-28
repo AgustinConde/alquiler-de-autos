@@ -137,16 +137,30 @@
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.querySelector('.file-input');
+    const fileInput = document.querySelector('input[type="file"][name="image"]');
     const fileName = document.querySelector('.file-name');
     
     if (fileInput && fileName) {
-      fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-          fileName.textContent = fileInput.files[0].name;
+
+      fileInput.onchange = function() {
+        if (this.files && this.files.length > 0) {
+          console.log('Selected file:', this.files[0].name);
+          fileName.textContent = this.files[0].name;
         } else {
           fileName.textContent = 'No file selected';
         }
+      };
+        document.addEventListener('click', function() {
+        setTimeout(() => {
+          if (fileInput.files.length === 0 && fileName.textContent !== 'No file selected') {
+            fileName.textContent = 'No file selected';
+          }
+        }, 100);
+      });
+    } else {
+      console.error('Could not find file elements:', { 
+        fileInputFound: !!fileInput, 
+        fileNameFound: !!fileName 
       });
     }
   });

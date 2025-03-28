@@ -21,12 +21,28 @@ module.exports = class CarService {
     return this.carRepository.save(car);
   }
 
-  async getAllCars() {
-    return this.carRepository.getAllCars();
+  /**
+   * @param {boolean} includeDeleted
+   * @returns {Promise<Array>}
+   */
+  async getCars(includeDeleted = false) {
+    return includeDeleted 
+      ? this.carRepository.getUnfilteredCars() 
+      : this.carRepository.getAllCars();
   }
 
+  /**
+   * @returns {Promise<Array>}
+   */
+  async getAllCars() {
+    return this.getCars(false);
+  }
+
+  /**
+   * @returns {Promise<Array>}
+   */
   async getUnfilteredCars() {
-    return this.carRepository.getUnfilteredCars();
+    return this.getCars(true);
   }
 
   async getCarsLength() {
@@ -59,41 +75,24 @@ module.exports = class CarService {
       return this.carRepository.getUnfilteredCarById(carId);
     }
 
-  /**
-   * @param {import('../entity/Car')} car
-   */
-  async delete(car) {
-    if (!(car instanceof Car)) {
-      throw new CarNotDefinedError();
-    }
-
-    return this.carRepository.delete(car);
-  }
+/**
+ * @param {Car|number} input
+ */
+async delete(input) {
+  const car = input instanceof Car 
+    ? input 
+    : await this.carRepository.getCarById(Number(input));
+    
+  return this.carRepository.delete(car);
+}
 
   /**
  * @param {number} carId
  */
-async restore(carId) {
-  if (!Number(carId)) {
-    throw new CarIdNotDefinedError();
-  }
-  return this.carRepository.restore(carId);
-}
-
-  /**
-   * @param {number} carId
-   */
-  async delete(carId) {
+  async restore(carId) {
     if (!Number(carId)) {
-      throw new Error('Car ID not defined');
+      throw new CarIdNotDefinedError();
     }
-
-    const car = await this.carRepository.getCarById(carId);
-    
-    if (car.rentals && car.rentals.some(rental => rental instanceof Rental && rental.status === 'active')) {
-      throw new Error('Cannot delete a car that is currently being rented');
-    }
-    
-    return this.carRepository.delete(car);
+    return this.carRepository.restore(carId);
   }
 };

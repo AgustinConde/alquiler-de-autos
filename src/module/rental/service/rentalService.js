@@ -2,7 +2,6 @@ const { RentalNotDefinedError, RentalIdNotDefinedError, RentalNotFoundError } = 
 const Rental = require('../entity/Rental');
 const { isPaid } = require('../entity/RentalIsPaid');
 
-
 module.exports = class RentalService {
   /**
    * @param {import('../repository/rentalRepository')} RentalRepository
@@ -11,47 +10,6 @@ module.exports = class RentalService {
   constructor(RentalRepository, CarRepository) {
     this.RentalRepository = RentalRepository;
     this.CarRepository = CarRepository;
-  }
-
-  /**
-   * @param {Request} req
-   * @param {Response} res
-   */
-  async createRental(req, res) {
-    try {
-      if (!req.session.user?.id) {
-        return res.status(401).json({ error: "You must be logged in to rent a car." });
-      }
-
-      const { carId, rentalStart, rentalEnd, paymentMethod } = req.body;
-      if (!carId || !rentalStart || !rentalEnd || !paymentMethod) {
-        return res.status(400).json({ error: "Missing rental information." });
-      }
-
-      const car = await this.CarRepository.getCarById(carId);
-      if (!car) {
-        return res.status(404).json({ error: "Car not found." });
-      }
-
-      const rental = new Rental({
-        rentedCar: car.id,
-        rentedTo: req.session.user.id,
-        rentalStart,
-        rentalEnd,
-        paymentMethod,
-        pricePerDay: car.pricePerDay,
-        totalPrice: car.pricePerDay * ((new Date(rentalEnd) - new Date(rentalStart)) / (1000 * 60 * 60 * 24)),
-        isPaid: false
-      });
-
-      await this.RentalRepository.save(rental);
-
-      return res.redirect("/account/rents");
-
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: error.message });
-    }
   }
 
   /**

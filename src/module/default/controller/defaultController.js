@@ -19,7 +19,6 @@ module.exports = class DefaultController {
    */
   async index(req, res) {
     try {
-        console.log('📍 Default controller: Starting index action');
         const cars = await this.carService.getAllCars();
         console.log(`✅ Found ${cars?.length || 0} cars`);
         return res.render('default/views/index.njk', { 
@@ -35,16 +34,12 @@ module.exports = class DefaultController {
             }
         });
     }
-}
+  }
 
   /**
    * @param {import('express').Application} app
    */
   configureRoutes(app) {
     app.get('/', this.index.bind(this));
-}
-
-  async rentalProgress(req, res) {
-    res.send(`window.RentalIsPaid = ${JSON.stringify(rentalIsPaid)}`);
   }
 };

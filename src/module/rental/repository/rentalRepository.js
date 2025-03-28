@@ -67,11 +67,6 @@ async delete(rental) {
       throw new RentalIdNotDefinedError();
     }
 
-    const CarModel = require('../../car/model/carModel');
-    const ClientModel = require('../../client/model/clientModel');
-    const { modelToEntity: carModelToEntity } = require('../../car/mapper/carMapper');
-    const { modelToEntity: clientModelToEntity } = require('../../client/mapper/clientMapper');
-
     const rental = await this.RentalModel.findByPk(rentalId, {
       include: [
         {
@@ -150,11 +145,6 @@ async getRentalsByClientId(clientId) {
     throw new Error('Invalid client ID');
   }
   
-  const CarModel = require('../../car/model/carModel');
-  const ClientModel = require('../../client/model/clientModel');
-  const { modelToEntity: carModelToEntity } = require('../../car/mapper/carMapper');
-  const { modelToEntity: clientModelToEntity } = require('../../client/mapper/clientMapper');
-  
   const rentals = await this.RentalModel.findAll({
     where: {
       rentedTo: clientId,
@@ -196,11 +186,6 @@ async createFromBackup(rentalData) {
     });
 
     console.log(`✓ Alquiler restaurado con ID: ${rental.id}`);
-    
-    const CarModel = require('../../car/model/carModel');
-    const ClientModel = require('../../client/model/clientModel');
-    const { modelToEntity: carModelToEntity } = require('../../car/mapper/carMapper');
-    const { modelToEntity: clientModelToEntity } = require('../../client/mapper/clientMapper');
     
     const completeRental = await this.RentalModel.findByPk(rental.id, {
       include: [
