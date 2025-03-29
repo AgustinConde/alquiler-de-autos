@@ -108,8 +108,39 @@
 </section>
 
 <script>
-    document.getElementById('showDeletedCheckbox').addEventListener('change', function() {
-        window.location.href = '?showDeleted=' + this.checked;
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.getElementById('showDeletedCheckbox');
+        
+        const savedPreference = localStorage.getItem('showDeletedCars');
+        if (savedPreference !== null) {
+            checkbox.checked = savedPreference === 'true';
+            
+            if ((checkbox.checked).toString() !== '{{ showDeleted }}') {
+                applyFilter(checkbox.checked);
+            }
+        } else {
+            localStorage.setItem('showDeletedCars', checkbox.checked);
+        }
+        
+        checkbox.addEventListener('change', function() {
+            localStorage.setItem('showDeletedCars', this.checked);
+            applyFilter(this.checked);
+        });
+        
+        function applyFilter(showDeleted) {
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = window.location.pathname;
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'showDeleted';
+            input.value = showDeleted;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
     });
 </script>
 

@@ -76,9 +76,11 @@ module.exports = class CarController {
 
       res.render('pages/manage/cars/index.njk', {
         title: 'Manage Cars',
-        cars
+        cars,
+        showDeleted
       });
     } catch (error) {
+      console.error('❌ Error loading cars:', error);
       req.flash('error', 'Error loading cars');
       res.redirect('/');
     }
@@ -182,7 +184,7 @@ module.exports = class CarController {
   async restore(req, res) {
     try {
       const { id } = req.params;
-      await this.carService.restoreCar(id);
+      await this.carService.restore(id);
       req.flash('success', 'Car restored successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {
