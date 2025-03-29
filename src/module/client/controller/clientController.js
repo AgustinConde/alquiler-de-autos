@@ -82,7 +82,25 @@ class ClientController {
    */
   async update(req, res) {
     try {
-      await this.clientService.update(req.params.id, req.body);
+      const existingClient = await this.clientService.update(req.params.id, req.body);
+
+      const previousState = { ...existingClient };
+      const clientData = { ...req.body, id };
+      await this.clientService.update(id, clientData);
+      const updatedClient = await this.clientService.getClientById(id);
+      
+      const auditService = req.app.get('container').get('AuditService');
+      await auditService.createAuditLog(
+        'client',
+        id,
+        'update',
+        {
+          previous: previousState,
+          current: updatedClient
+        },
+        req.session.user
+      );
+
       req.flash('success', 'Client updated successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {
@@ -97,7 +115,20 @@ class ClientController {
    */
   async delete(req, res) {
     try {
-      await this.clientService.delete(req.params.id);
+      const { id } = req.params;
+      const client = await this.clientService.getClientById(id);
+
+      const auditService = req.app.get('container').get('AuditService');
+      await auditService.createAuditLog(
+        'client',
+        id,
+        'delete',
+        client,
+        req.session.user
+      );
+      
+      await this.clientService.delete(id);
+      
       req.flash('success', 'Client deleted successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {

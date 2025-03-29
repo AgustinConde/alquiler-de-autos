@@ -6,11 +6,11 @@ const RentalModel = require('../../rental/model/rentalModel');
 module.exports = class CarRepository {
   /**
    * @param {typeof import('../model/carModel')} carModel
-   * @param {import('../../backup/repository/backupRepository')} backupRepository
+   * @param {import('../../audit/repository/auditRepository')} auditRepository
    */
-  constructor(carModel, backupRepository) {
+  constructor(carModel, auditRepository) {
     this.carModel = carModel;
-    this.backupRepository = backupRepository;
+    this.auditRepository = auditRepository;
   }
 
   /**
@@ -96,11 +96,11 @@ module.exports = class CarRepository {
     if (!(car instanceof Car)) {
       throw new CarNotDefinedError();
     }
-
+  
     const carModel = await this.carModel.findByPk(car.id, {
       include: [RentalModel]
     });
-
+  
     if (carModel.Rentals && carModel.Rentals.length > 0) {
       const activeRentals = carModel.Rentals.filter(rental => {
         const endDate = new Date(rental.rentalEnd);
@@ -111,10 +111,10 @@ module.exports = class CarRepository {
         throw new Error('Cannot delete car with active rentals');
       }
     }
-
-    console.log(`✅ Car ${car.id} succesfully deleted. Creating backup...`);
-    await this.backupRepository.backupByCarId(car.id);
-
+  
+    console.log(`✅ Car ${car.id} marked as deleted. Creating audit log...`);
+    await auditRepository.logAction('car', car.id, 'delete', carData, currentUser);
+  
     await carModel.destroy();
     return car;
   }
@@ -143,17 +143,4 @@ async restore(carId) {
   return modelToEntity(carInstance);
 }
 
-  /**
-   * @param {Object} carData
-   */
-  async createFromBackup(carData) {
-    try {
-      const car = await this.carModel.create(carData);
-      
-      return modelToEntity(car);
-    } catch (error) {
-      console.error('Error restoring car from backup:', error);
-      throw new Error(`Failed to restore car: ${error.message}`);
-    }
-  }
 };

@@ -1,0 +1,126 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div class="container">
+  <h1 class="title">Audit Log Details</h1>
+  <h2 class="subtitle">ID: {{ audit.id }}</h2>
+  
+  <div class="box">
+    <h3 class="is-size-4">General Information</h3>
+    <p><strong>Entity Type:</strong> {{ audit.entityType | capitalize }}</p>
+    <p><strong>Entity ID:</strong> {{ audit.entityId }}</p>
+    <p><strong>Action:</strong> {{ audit.actionType | capitalize }}</p>
+    <p><strong>Recorded At:</strong> {{ audit.createdAt | date('DD/MM/YYYY HH:mm') }}</p>
+    {% if audit.performedByEmail %}
+      <p><strong>Performed By:</strong> {{ audit.performedByEmail }}</p>
+    {% endif %}
+    {% if audit.restoredAt %}
+      <p><strong>Restored At:</strong> {{ audit.restoredAt | date('DD/MM/YYYY HH:mm') }}</p>
+    {% endif %}
+  </div>
+  
+  {% if audit.actionType === 'update' %}
+  <div class="box">
+    <h3 class="is-size-4">Changes</h3>
+    <div class="columns">
+      <div class="column">
+        <h4 class="is-size-5">Previous</h4>
+        <table class="table is-bordered is-striped is-fullwidth">
+          <tbody>
+            {% for key, value in auditData.previous %}
+              {% if key !== 'rentals' and key !== 'id' %}
+                <tr>
+                  <th>{{ key | capitalize }}</th>
+                  <td>{{ value }}</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="column">
+        <h4 class="is-size-5">Current</h4>
+        <table class="table is-bordered is-striped is-fullwidth">
+          <tbody>
+            {% for key, value in auditData.current %}
+              {% if key !== 'rentals' and key !== 'id' %}
+                <tr>
+                  <th>{{ key | capitalize }}</th>
+                  <td>{{ value }}</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% elif audit.entityType === 'car' %}
+    <div class="box">
+      <h3 class="is-size-4">Car Details</h3>
+      <p><strong>Brand:</strong> {{ auditData.brand }}</p>
+      <p><strong>Model:</strong> {{ auditData.model }}</p>
+      <p><strong>Year:</strong> {{ auditData.year }}</p>
+      <p><strong>Color:</strong> {{ auditData.color }}</p>
+      <p><strong>Daily Rate:</strong> ${{ auditData.pricePerDay }}</p>
+    </div>
+    
+    {% if rentals and rentals.length > 0 %}
+      <div class="box">
+        <h3 class="is-size-4">Associated Rentals ({{ rentals.length }})</h3>
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in auditData.current %}
+              {% if key !== 'rentals' and key !== 'id' %}
+                <tr>
+                  <th>{{ key | capitalize }}</th>
+                  <td>
+                    {% if value != null %}
+                      {{ value }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% elif audit.entityType === 'client' %}
+    <div class="box">
+      <h3 class="is-size-4">Client Details</h3>
+      <p><strong>Name:</strong> {{ auditData.name }} {{ auditData.surname }}</p>
+      <p><strong>Email:</strong> {{ auditData.email }}</p>
+      <p><strong>Phone:</strong> {{ auditData.phone }}</p>
+      <p><strong>ID Type:</strong> {{ auditData.idType }}</p>
+      <p><strong>ID Number:</strong> {{ auditData.idNumber }}</p>
+    </div>
+  {% endif %}
+  
+  {% if audit.actionType === 'delete' and not audit.restoredAt %}
+    <div class="field is-grouped is-grouped-centered">
+      <p class="control">
+        <form action="{{ ROUTE }}/restore/{{ audit.id }}" method="POST">
+          <button type="submit" class="button is-success">
+            <span class="icon">
+              <i class="fas fa-undo"></i>
+            </span>
+            <span>Restore</span>
+          </button>
+        </form>
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

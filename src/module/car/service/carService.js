@@ -1,14 +1,13 @@
 const Car = require('../entity/Car');
 const { CarNotDefinedError, CarIdNotDefinedError } = require('../error/carError');
-const Rental = require('../../rental/entity/Rental');
 
 module.exports = class CarService {
   /**
    * @param {import('../repository/carRepository')} carRepository
    */
-  constructor(carRepository, backupService) {
+  constructor(carRepository, auditService) {
     this.carRepository = carRepository;
-    this.backupService = backupService;
+    this.auditService = auditService;
   }
 
   /**

@@ -6,9 +6,11 @@ const upload = require('../../../middleware/uploadMiddleware');
 module.exports = class CarController {
   /**
    * @param {import('../service/carService')} carService 
+   * @param {import('../../audit/service/auditService')} auditService
    */
-  constructor(carService) {
+  constructor(carService, auditService) {
     this.carService = carService;
+    this.auditService = auditService;
     this.ROUTE_BASE = '/cars';
     this.ADMIN_ROUTE = '/manage/cars';
     this.CAR_VIEWS = 'car/views';
@@ -112,7 +114,18 @@ module.exports = class CarController {
       };
       
       const car = formToEntity(carData);
-      await this.carService.save(car);
+      const savedCar = await this.carService.save(car);
+
+      await this.auditService.createAuditLog(
+        'car', 
+        savedCar.id, 
+        'create', 
+        savedCar, 
+        {
+          id: req.session.clientId,
+          email: req.session.auth?.username || req.session.email
+        }
+      );
       
       req.flash('success', 'Car added successfully');
       res.redirect(this.ADMIN_ROUTE);
@@ -143,6 +156,8 @@ module.exports = class CarController {
       const { id } = req.params;
       const existingCar = await this.carService.getCarById(id);
       
+      const previousState = { ...existingCar };
+
       const carData = {
         ...req.body,
         id,
@@ -158,6 +173,21 @@ module.exports = class CarController {
       
       const car = formToEntity(carData);
       await this.carService.save(car);
+
+      const auditService = req.app.get('container').get('AuditService');
+      await auditService.createAuditLog(
+        'car',
+        car.id,
+        'update',
+        {
+          previous: previousState,
+          current: car
+        },
+        {
+          id: req.session.clientId,
+          email: req.session.auth?.username || req.session.email
+        }
+      );
       
       req.flash('success', 'Car updated successfully');
       res.redirect(this.ADMIN_ROUTE);
@@ -184,7 +214,19 @@ module.exports = class CarController {
   async restore(req, res) {
     try {
       const { id } = req.params;
-      await this.carService.restore(id);
+      const car = await this.carService.restore(id);
+      const auditService = req.app.get('container').get('AuditService');
+      await auditService.createAuditLog(
+        'car',
+        id,
+        'restore',
+        car,
+        {
+          id: req.session.clientId,
+          email: req.session.auth?.username || req.session.email
+        }
+      );
+
       req.flash('success', 'Car restored successfully');
       res.redirect(this.ADMIN_ROUTE);
     } catch (error) {

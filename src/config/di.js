@@ -10,7 +10,7 @@ const { CarController, CarService, CarRepository, CarModel } = require('../modul
 const { ClientController, ClientService, ClientRepository, ClientModel } = require('../module/client/clientModule');
 const { RentalController, RentalService, RentalRepository, RentalModel } = require('../module/rental/rentalModule');
 const { AuthController, AuthService, AuthRepository, AuthModel } = require('../module/auth/authModule');
-const { BackupController, BackupService, BackupRepository, BackupModel,} = require('../module/backup/backupModule');
+const { AuditController, AuditService, AuditRepository, AuditModel,} = require('../module/audit/auditModule');
 
 function configureRentalSequelize() {
     return new Sequelize({
@@ -55,8 +55,8 @@ function configureAuthModule(container) {
 /**
  * @param {DIContainer} container
  */
-function configureBackupModule(container) {
-  return BackupModel.setup(container.get('RentalSequelize'));
+function configureAuditModule(container) {
+  return AuditModel.setup(container.get('RentalSequelize'));
 }
 
 function configureMulter() {
@@ -95,10 +95,13 @@ function addCarModuleDefinitions(container) {
     CarModel: factory(configureCarModule),
     CarRepository: object(CarRepository).construct(
       get('CarModel'),
-      get('BackupRepository')
+      get('AuditRepository')
     ),
     CarService: object(CarService).construct(get('CarRepository')),
-    CarController: object(CarController).construct(get('CarService'))
+    CarController: object(CarController).construct(
+      get('CarService'),
+      get('AuditService')
+    )
   });
 }
 
@@ -151,21 +154,21 @@ function addAuthModuleDefinitions(container) {
 /**
  * @param {DIContainer} container
  */
-function addBackupModuleDefinitions(container) {
+function addAuditModuleDefinitions(container) {
   container.addDefinitions({
-    BackupModel: factory(configureBackupModule),
-    BackupRepository: object(BackupRepository).construct(
-      get('BackupModel'),
+    AuditModel: factory(configureAuditModule),
+    AuditRepository: object(AuditRepository).construct(
+      get('AuditModel'),
       get('CarModel'),
       get('RentalModel')
     ),
-    BackupService: object(BackupService).construct(
-      get('BackupRepository'),
+    AuditService: object(AuditService).construct(
+      get('AuditRepository'),
       get('CarRepository'),
       get('ClientRepository'),
       get('RentalRepository')
     ),
-    BackupController: object(BackupController).construct(get('BackupService'))
+    AuditController: object(AuditController).construct(get('AuditService'))
   });
 }
 
@@ -182,7 +185,7 @@ module.exports = function diConfig() {
   addCommonDefinitions(container);
   addCarModuleDefinitions(container);
   addClientModuleDefinitions(container);
-  addBackupModuleDefinitions(container);
+  addAuditModuleDefinitions(container);
   addRentalModuleDefinitions(container);
   addAuthModuleDefinitions(container);
 

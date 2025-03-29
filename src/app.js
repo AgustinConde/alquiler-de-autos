@@ -11,7 +11,7 @@ const diConfig = require('./config/di');
 const { initCarModule } = require('./module/car/carModule');
 const { initClientModule } = require('./module/client/clientModule');
 const { initRentalModule } = require('./module/rental/rentalModule');
-const { initBackupModule } = require('./module/backup/backupModule');
+const { initAuditModule } = require('./module/audit/auditModule');
 const { initAuthModule } = require('./module/auth/authModule');
 
 const app = express();
@@ -63,7 +63,7 @@ initAuthModule(app, container);
 initCarModule(app, container);
 initClientModule(app, container);
 initRentalModule(app, container);
-initBackupModule(app, container);
+initAuditModule(app, container);
 
 const rentalSequelize = container.get('RentalSequelize');
 

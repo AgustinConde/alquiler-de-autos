@@ -101,6 +101,27 @@ class ClientRepository {
   async getClientById(id) {
     return this.clientModel.findByPk(id);
   }
+
+  async restore(clientId) {
+    if (!Number(clientId)) {
+      throw new ClientIdNotDefinedError();
+    }
+  
+    const clientInstance = await this.clientModel.findByPk(clientId, {
+      paranoid: false
+    });
+    
+    if (!clientInstance) {
+      throw new ClientNotFoundError(`Client with ID ${clientId} not found.`);
+    }
+    
+    if (!clientInstance.deletedAt) {
+      throw new Error('Client is not deleted.');
+    }
+    
+    await clientInstance.restore();
+    return clientInstance.toJSON();
+  }
 }
 
 module.exports = ClientRepository;

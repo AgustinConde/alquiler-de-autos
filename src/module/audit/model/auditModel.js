@@ -1,8 +1,8 @@
 const { Model, DataTypes } = require('sequelize');
 
-module.exports = class BackupModel extends Model {
+module.exports = class AuditModel extends Model {
   static setup(sequelize) {
-    BackupModel.init({
+    AuditModel.init({
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -17,9 +17,23 @@ module.exports = class BackupModel extends Model {
         type: DataTypes.INTEGER,
         allowNull: false
       },
+      actionType: {
+        type: DataTypes.ENUM('delete', 'update', 'create', 'restore'),
+        allowNull: false
+      },
       data: {
         type: DataTypes.JSON,
         allowNull: false
+      },
+      performedBy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'ID of the user who performed this action'
+      },
+      performedByEmail: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'Email of the user who performed this action'
       },
       restoredAt: {
         type: DataTypes.DATE,
@@ -27,13 +41,13 @@ module.exports = class BackupModel extends Model {
       }
     }, {
       sequelize,
-      modelName: 'Backup',
-      tableName: 'backups',
+      modelName: 'Audit',
+      tableName: 'audits',
       timestamps: true,
       paranoid: true,
       underscored: true
     });
-
-    return BackupModel;
+  
+    return AuditModel;
   }
 };

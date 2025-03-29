@@ -4,11 +4,11 @@ const Client = require('../entity/Client');
 class ClientService {
   /**
    * @param {import('../repository/clientRepository')} clientRepository
-   * @param {import('../service/backupService')} backupService
+   * @param {import('../../audit/service/auditService')} auditService
    */
-  constructor(clientRepository, backupService) {
+  constructor(clientRepository, auditService) {
     this.clientRepository = clientRepository;
-    this.backupService = backupService;
+    this.auditService = auditService;
   }
 
   /**
@@ -51,10 +51,22 @@ class ClientService {
     if (!client) throw new Error('Client not found');
 
     if (client.Rentals.length > 0) {
-      await this.backupService.createBackup('client', id, client.Rentals);
+      await this.auditService.createAuditLog(
+        'client',
+        id,
+        'delete',
+        client.toJSON()
+      );
     }
 
     await client.destroy();
+  }
+
+  async restore(clientId) {
+    if (!Number(clientId)) {
+      throw new ClientIdNotDefinedError();
+    }
+    return this.clientRepository.restore(clientId);
   }
 }
 
