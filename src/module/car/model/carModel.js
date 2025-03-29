@@ -29,7 +29,6 @@ module.exports = class CarModel extends Model {
                 color: {
                     type: DataTypes.STRING,
                     allowNull: false
-                    allowNull: false,
                 },
                 ac: {
                     type: DataTypes.BOOLEAN,
