@@ -2,124 +2,147 @@
 
 {% block content %}
 <div class="container">
-  <h1 class="title">Audit Log Details</h1>
-  <h2 class="subtitle">ID: {{ audit.id }}</h2>
+  <h1 class="title">Audit Log Details #{{ audit.id }}</h1>
   
   <div class="box">
     <h3 class="is-size-4">General Information</h3>
     <p><strong>Entity Type:</strong> {{ audit.entityType | capitalize }}</p>
     <p><strong>Entity ID:</strong> {{ audit.entityId }}</p>
     <p><strong>Action:</strong> {{ audit.actionType | capitalize }}</p>
-    <p><strong>Recorded At:</strong> {{ audit.createdAt | date('DD/MM/YYYY HH:mm') }}</p>
-    {% if audit.performedByEmail %}
-      <p><strong>Performed By:</strong> {{ audit.performedByEmail }}</p>
-    {% endif %}
-    {% if audit.restoredAt %}
-      <p><strong>Restored At:</strong> {{ audit.restoredAt | date('DD/MM/YYYY HH:mm') }}</p>
+    <p><strong>Date:</strong> {{ audit.createdAt | date }}</p>
+    <p><strong>Performed By:</strong> {{ audit.performedByEmail or '—' }}</p>
+    <p><strong>Restored:</strong> 
+      {% if audit.restoredAt %}
+        {{ audit.restoredAt | date }}
+      {% elif audit.actionType === 'delete' %}
+        —
+      {% else %}
+        {{ audit.entityType | capitalize }} is not deleted
+      {% endif %}
+    </p>    
+    {% if audit.actionType === 'delete' and not audit.restoredAt %}
+      <form method="post" action="{{ ROUTE }}/restore/{{ audit.id }}">
+        <button type="submit" class="button is-warning">Restore</button>
+      </form>
     {% endif %}
   </div>
   
   {% if audit.actionType === 'update' %}
-  <div class="box">
-    <h3 class="is-size-4">Changes</h3>
-    <div class="columns">
-      <div class="column">
-        <h4 class="is-size-5">Previous</h4>
-        <table class="table is-bordered is-striped is-fullwidth">
-          <tbody>
-            {% for key, value in auditData.previous %}
-              {% if key !== 'rentals' and key !== 'id' %}
-                <tr>
-                  <th>{{ key | capitalize }}</th>
-                  <td>{{ value }}</td>
-                </tr>
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <div class="column">
-        <h4 class="is-size-5">Current</h4>
-        <table class="table is-bordered is-striped is-fullwidth">
-          <tbody>
-            {% for key, value in auditData.current %}
-              {% if key !== 'rentals' and key !== 'id' %}
-                <tr>
-                  <th>{{ key | capitalize }}</th>
-                  <td>{{ value }}</td>
-                </tr>
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
+    <div class="box">
+      <h3 class="is-size-4">Changes</h3>
+      <div class="columns">
+        <div class="column">
+          <h4 class="is-size-5">Previous</h4>
+          <table class="table is-bordered is-striped is-fullwidth">
+            <tbody>
+              {% for key, value in auditData.previous %}
+                {% if key !== 'rentals' and key !== 'id' %}
+                  <tr>
+                    <th>{{ key | capitalize }}</th>
+                    <td>{{ value }}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="column">
+          <h4 class="is-size-5">Current</h4>
+          <table class="table is-bordered is-striped is-fullwidth">
+            <tbody>
+              {% for key, value in auditData.current %}
+                {% if key !== 'rentals' and key !== 'id' %}
+                  <tr>
+                    <th>{{ key | capitalize }}</th>
+                    <td>{{ value }}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-  {% elif audit.entityType === 'car' %}
+  
+  {% elif audit.actionType === 'delete' %}
     <div class="box">
-      <h3 class="is-size-4">Car Details</h3>
-      <p><strong>Brand:</strong> {{ auditData.brand }}</p>
-      <p><strong>Model:</strong> {{ auditData.model }}</p>
-      <p><strong>Year:</strong> {{ auditData.year }}</p>
-      <p><strong>Color:</strong> {{ auditData.color }}</p>
-      <p><strong>Daily Rate:</strong> ${{ auditData.pricePerDay }}</p>
+      <h3 class="is-size-4">Deleted {{ audit.entityType | capitalize }} Details</h3>
+      
+      {% if audit.entityType === 'car' %}
+        <p><strong>Brand:</strong> {{ auditData.brand }}</p>
+        <p><strong>Model:</strong> {{ auditData.model }}</p>
+        <p><strong>Year:</strong> {{ auditData.year }}</p>
+        <p><strong>Color:</strong> {{ auditData.color }}</p>
+        <p><strong>Daily Rate:</strong> ${{ auditData.pricePerDay }}</p>
+        <p><strong>Mileage:</strong> {{ auditData.mileage }}</p>
+        <p><strong>A/C:</strong> {% if auditData.ac %}Yes{% else %}No{% endif %}</p>
+        <p><strong>Passengers:</strong> {{ auditData.capacity }}</p>
+        {% if auditData.image %}
+          <p><strong>Image:</strong> {{ auditData.image }}</p>
+        {% endif %}
+      
+      {% elif audit.entityType === 'client' %}
+        <p><strong>Name:</strong> {{ auditData.name }} {{ auditData.surname }}</p>
+        <p><strong>Email:</strong> {{ auditData.email }}</p>
+        <p><strong>Phone:</strong> {{ auditData.phone }}</p>
+        <p><strong>ID Type:</strong> {{ auditData.idType }}</p>
+        <p><strong>ID Number:</strong> {{ auditData.idNumber }}</p>
+      
+      {% elif audit.entityType === 'rental' %}
+        <p><strong>Car:</strong> {{ auditData.car.brand }} {{ auditData.car.model }}</p>
+        <p><strong>Client:</strong> {{ auditData.client.name }} {{ auditData.client.surname }}</p>
+        <p><strong>Rental Period:</strong> {{ auditData.rentalStart }} to {{ auditData.rentalEnd }}</p>
+        <p><strong>Total Price:</strong> ${{ auditData.totalPrice }}</p>
+        <p><strong>Payment Status:</strong> {{ auditData.paymentProgress.name }}</p>
+        <p><strong>Payment Method:</strong> {{ auditData.paymentMethod }}</p>
+      {% endif %}
     </div>
-    
-    {% if rentals and rentals.length > 0 %}
-      <div class="box">
-        <h3 class="is-size-4">Associated Rentals ({{ rentals.length }})</h3>
-        <table class="table is-fullwidth">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Price</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for key, value in auditData.current %}
-              {% if key !== 'rentals' and key !== 'id' %}
-                <tr>
-                  <th>{{ key | capitalize }}</th>
-                  <td>
-                    {% if value != null %}
-                      {{ value }}
-                    {% else %}
-                      —
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
-  {% elif audit.entityType === 'client' %}
+  
+  {% elif audit.actionType === 'create' %}
     <div class="box">
-      <h3 class="is-size-4">Client Details</h3>
-      <p><strong>Name:</strong> {{ auditData.name }} {{ auditData.surname }}</p>
-      <p><strong>Email:</strong> {{ auditData.email }}</p>
-      <p><strong>Phone:</strong> {{ auditData.phone }}</p>
-      <p><strong>ID Type:</strong> {{ auditData.idType }}</p>
-      <p><strong>ID Number:</strong> {{ auditData.idNumber }}</p>
+      <h3 class="is-size-4">Created {{ audit.entityType | capitalize }} Details</h3>
+      
+      {% if audit.entityType === 'car' %}
+        <p><strong>Brand:</strong> {{ auditData.brand }}</p>
+        <p><strong>Model:</strong> {{ auditData.model }}</p>
+        <p><strong>Year:</strong> {{ auditData.year }}</p>
+        <p><strong>Color:</strong> {{ auditData.color }}</p>
+        <p><strong>Daily Rate:</strong> ${{ auditData.pricePerDay }}</p>
+        <p><strong>Mileage:</strong> {{ auditData.mileage }}</p>
+        <p><strong>A/C:</strong> {% if auditData.ac %}Yes{% else %}No{% endif %}</p>
+        <p><strong>Passengers:</strong> {{ auditData.capacity }}</p>
+        {% if auditData.image %}
+          <p><strong>Image:</strong> {{ auditData.image }}</p>
+        {% endif %}
+      {% endif %}
     </div>
   {% endif %}
   
-  {% if audit.actionType === 'delete' and not audit.restoredAt %}
-    <div class="field is-grouped is-grouped-centered">
-      <p class="control">
-        <form action="{{ ROUTE }}/restore/{{ audit.id }}" method="POST">
-          <button type="submit" class="button is-success">
-            <span class="icon">
-              <i class="fas fa-undo"></i>
-            </span>
-            <span>Restore</span>
-          </button>
-        </form>
-      </p>
+  {% if audit.entityType === 'car' and rentals and rentals.length > 0 %}
+    <div class="box">
+      <h3 class="is-size-4">Associated Rentals ({{ rentals.length }})</h3>
+      <table class="table is-fullwidth">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rental in rentals %}
+            <tr>
+              <td>{{ rental.id }}</td>
+              <td>{{ rental.rentalStart | date }}</td>
+              <td>{{ rental.rentalEnd | date }}</td>
+              <td>${{ rental.totalPrice }}</td>
+              <td>{{ rental.paymentProgress.name }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   {% endif %}
 </div>

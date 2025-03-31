@@ -77,17 +77,22 @@ module.exports = class AuditController {
             auditData.previous.client = `${auditData.previous.client.name || ''} ${auditData.previous.client.surname || ''}`;
           }
           
-          if (auditData.current.car && typeof auditData.current.car === 'object') {
-            auditData.current.car = `${auditData.current.car.brand || ''} ${auditData.current.car.model || ''}`;
-          }
-
-          if (auditData.current.client && typeof auditData.current.client === 'object') {
-            auditData.current.client = `${auditData.current.client.name || ''} ${auditData.current.client.surname || ''}`;
-          }
-
           if (auditData.previous.paymentProgress && typeof auditData.previous.paymentProgress === 'object') {
             auditData.previous.paymentProgress = auditData.previous.paymentProgress.name || 
               (auditData.previous.paymentProgress.value === 1 ? 'Paid' : 'Pending');
+          }
+          
+          if (auditData.previous.formattedDates && typeof auditData.previous.formattedDates === 'object') {
+            auditData.previous.formattedDates = 
+              `${auditData.previous.rentalStart} to ${auditData.previous.rentalEnd}`;
+          }
+          
+          if (auditData.current.car && typeof auditData.current.car === 'object') {
+            auditData.current.car = `${auditData.current.car.brand || ''} ${auditData.current.car.model || ''}`;
+          }
+          
+          if (auditData.current.client && typeof auditData.current.client === 'object') {
+            auditData.current.client = `${auditData.current.client.name || ''} ${auditData.current.client.surname || ''}`;
           }
           
           if (auditData.current.paymentProgress && typeof auditData.current.paymentProgress === 'object') {
@@ -95,14 +100,9 @@ module.exports = class AuditController {
               (auditData.current.paymentProgress.value === 1 ? 'Paid' : 'Pending');
           }
           
-          if (auditData.previous.formattedDates && typeof auditData.previous.formattedDates === 'object') {
-            auditData.previous.formattedDates = 
-              `${auditData.previous.startDate || auditData.previous.rentalStart} to ${auditData.previous.endDate || auditData.previous.rentalEnd}`;
-          }
-          
           if (auditData.current.formattedDates && typeof auditData.current.formattedDates === 'object') {
             auditData.current.formattedDates = 
-              `${auditData.current.startDate || auditData.current.rentalStart} to ${auditData.current.endDate || auditData.current.rentalEnd}`;
+              `${auditData.current.rentalStart} to ${auditData.current.rentalEnd}`;
           }
         }
       }
