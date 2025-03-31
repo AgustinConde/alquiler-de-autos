@@ -8,13 +8,15 @@ module.exports = class RentalController {
    * @param {import('../service/rentalService')} RentalService
    * @param {import('../../car/service/carService')} CarService
    * @param {import('../../client/service/clientService')} ClientService
+   * @param {import('../../audit/service/auditService')} AuditService
    */
-  constructor(RentalService, CarService, ClientService) {
+  constructor(RentalService, CarService, ClientService, AuditService) {
     this.RentalService = RentalService;
     this.CarService = CarService;
     this.ClientService = ClientService;
+    this.AuditService = AuditService;
     this.ROUTE_BASE = '/profile/rentals';
-    this.RENTAL_VIEWS = 'pages/rental/';
+    this.RENTAL_VIEWS = '/pages/rental';
     this.ADMIN_ROUTE = '/manage/rentals';
   }
 
@@ -71,9 +73,12 @@ module.exports = class RentalController {
       const rental = await this.RentalService.getRentalById(rentalId);
       
       const from = req.query.from || 'profile';
-      console.log(`📍 Vista de alquiler accedida desde: ${from}`);
+
+      const viewPath = req.path.startsWith('/manage') ? 
+      'pages/manage/rentals/view.njk' : 
+      'pages/rental/view.njk';
   
-      res.render(`${this.RENTAL_VIEWS}view.njk`, {
+      res.render(viewPath, {
         title: `Viewing Rental #${rental.id}`,
         rental,
         isAdmin: req.session.role === 'admin',
@@ -99,7 +104,13 @@ module.exports = class RentalController {
       }
   
       const rental = await this.RentalService.getRentalById(rentalId);
-      res.render(`${this.RENTAL_VIEWS}edit.njk`, {
+      
+      const isAdminRoute = req.path.startsWith('/manage');
+      const viewPath = isAdminRoute 
+        ? 'pages/manage/rentals/edit.njk' 
+        : `${this.RENTAL_VIEWS}/edit.njk`;
+      
+      res.render(viewPath, {
         title: `Editing Rental #${rental.id}`,
         rental,
       });
@@ -114,16 +125,93 @@ module.exports = class RentalController {
    * @param {import('express').Request} req
    * @param {import('express').Response} res
    */
-  async update(req, res) {
-    try {
-      await this.RentalService.update(req.params.id, req.body);
-      req.flash('success', 'Rental updated successfully');
-      res.redirect(this.ADMIN_ROUTE);
-    } catch (error) {
-      req.flash('error', error.message);
-      res.redirect(`${this.ADMIN_ROUTE}/${req.params.id}/edit`);
+    async update(req, res) {
+      try {
+        console.log('📋 Form data received:', req.body);
+        
+        const rentalId = req.params.id;
+        const existingRental = await this.RentalService.getRentalById(rentalId);
+        const previousState = {
+          id: existingRental.id,
+          client: existingRental.client ? {
+            id: existingRental.client.id,
+            name: existingRental.client.name,
+            surname: existingRental.client.surname || '',
+            email: existingRental.client.email
+          } : null,
+          car: existingRental.car ? {
+            id: existingRental.car.id,
+            brand: existingRental.car.brand,
+            model: existingRental.car.model,
+            year: existingRental.car.year
+          } : null,
+          pricePerDay: existingRental.pricePerDay,
+          rentalStart: existingRental.rentalStart,
+          rentalEnd: existingRental.rentalEnd,
+          totalPrice: existingRental.totalPrice,
+          paymentProgress: {
+            name: existingRental.paymentProgress.name,
+            value: existingRental.paymentProgress.value
+          }
+        };
+        
+        await this.RentalService.update(rentalId, req.body);
+        const updatedRental = await this.RentalService.getRentalById(rentalId);
+
+        const currentState = {
+          id: updatedRental.id,
+          client: updatedRental.client ? {
+            id: updatedRental.client.id,
+            name: updatedRental.client.name,
+            surname: updatedRental.client.surname || '',
+            email: updatedRental.client.email
+          } : null,
+          car: updatedRental.car ? {
+            id: updatedRental.car.id,
+            brand: updatedRental.car.brand,
+            model: updatedRental.car.model,
+            year: updatedRental.car.year
+          } : null,
+          pricePerDay: updatedRental.pricePerDay,
+          rentalStart: updatedRental.rentalStart,
+          rentalEnd: updatedRental.rentalEnd,
+          totalPrice: updatedRental.totalPrice,
+          paymentProgress: {
+            name: updatedRental.paymentProgress.name,
+            value: updatedRental.paymentProgress.value
+          }
+        };        
+        console.log('🔄 Rental updated successfully');
+        console.log('📊 Previous state:', previousState.paymentProgress);
+        console.log('📊 Current state:', updatedRental.paymentProgress);
+        
+        try {
+          await this.AuditService.createAuditLog(
+            'rental',
+            rentalId,
+            'update',
+            {
+              previous: previousState,
+              current: currentState
+            },
+            {
+              id: req.session.clientId,
+              email: req.session.email || req.session.auth?.username
+            }
+          );
+          console.log('✅ Audit log created for rental update');
+        } catch (auditError) {
+          console.error('❌ Error creating audit log:', auditError);
+        }
+    
+        req.flash('success', 'Rental updated successfully');
+        res.redirect(this.ADMIN_ROUTE);
+      } catch (error) {
+        console.error('❌ Error updating rental:', error);
+        req.flash('error', error.message);
+        res.redirect(`${this.ADMIN_ROUTE}/${req.params.id}/edit`);
+      }
     }
-  }
 
   /**
  * @param {import('express').Request} req
@@ -220,7 +308,30 @@ async create(req, res) {
  */
 async delete(req, res) {
   try {
-    await this.RentalService.delete(req.params.id);
+    const rentalId = req.params.id;
+    
+    const rental = await this.RentalService.getRentalById(rentalId);
+    if (!rental) {
+      throw new Error('Rental not found');
+    }
+    
+    try {
+      await this.AuditService.createAuditLog(
+        'rental',
+        rentalId,
+        'delete',
+        rental,
+        {
+          id: req.session.clientId,
+          email: req.session.email || req.session.auth?.username
+        }
+      );
+      console.log('✅ Audit log created for rental deletion');
+    } catch (auditError) {
+      console.error('❌ Error creating audit log:', auditError);
+    }
+
+    await this.RentalService.delete(rentalId);
     req.flash('success', 'Rental deleted successfully');
     res.redirect(this.ADMIN_ROUTE);
   } catch (error) {

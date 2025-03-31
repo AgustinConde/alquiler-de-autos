@@ -36,8 +36,14 @@ module.exports = class Rental {
     this.rentedCar = carId;
     this.rentedTo = clientId;
     this.pricePerDay = pricePerDay;
-    this.rentalStart = new Date(startDate);
-    this.rentalEnd = new Date(endDate);
+    this.rentalStart = startDate instanceof Date ? 
+    startDate : 
+    new Date(typeof startDate === 'string' && !startDate.includes('T') ? 
+      `${startDate}T12:00:00` : startDate);
+    this.rentalEnd = endDate instanceof Date ? 
+      endDate : 
+      new Date(typeof endDate === 'string' && !endDate.includes('T') ? 
+        `${endDate}T12:00:00` : endDate);
     this.formattedDates = this.formatDate();
     this.totalPrice = totalPrice;
     this.paymentMethod = paymentMethod;

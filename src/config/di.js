@@ -132,7 +132,8 @@ function addRentalModuleDefinitions(container) {
     RentalController: object(RentalController).construct(
       get('RentalService'),
       get('CarService'),
-      get('ClientService'))
+      get('ClientService'),
+      get('AuditService'))
   });
 }
 

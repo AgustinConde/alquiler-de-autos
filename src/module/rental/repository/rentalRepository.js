@@ -22,8 +22,21 @@ module.exports = class RentalRepository {
     if (!(rental instanceof Rental)) {
       throw new RentalNotDefinedError();
     }
-    const rentalInfo = Object.assign({}, rental);
-    rentalInfo.isPaid = rental.isPaid.value;
+    const rentalInfo = {
+      id: rental.id,
+      rentedCar: rental.rentedCar,
+      rentedTo: rental.rentedTo,
+      pricePerDay: rental.pricePerDay,
+      rentalStart: rental.rentalStart,
+      rentalEnd: rental.rentalEnd,
+      totalPrice: rental.totalPrice,
+      paymentMethod: rental.paymentMethod,
+      isPaid: rental.paymentProgress.value === 1,
+      createdAt: rental.createdAt,
+      updatedAt: rental.updatedAt || new Date()
+    };
+  
+    console.log('💾 Saving rental with payment progress:', rentalInfo.paymentProgress);
 
     const rentalInstance = this.RentalModel.build(rentalInfo, {
       isNewRecord: !rentalInfo.id,
@@ -47,6 +60,41 @@ async delete(rental) {
   
   await rentalInstance.destroy();
   return rental;
+}
+
+/**
+ * @param {number} rentalId
+ * @returns {Promise<import('../entity/Rental')>}
+ */
+async restore(rentalId) {
+  if (!Number(rentalId)) {
+    throw new RentalIdNotDefinedError();
+  }
+
+  const rentalInstance = await this.RentalModel.findByPk(rentalId, {
+    paranoid: false,
+    include: [
+      {
+        model: CarModel,
+        paranoid: false
+      },
+      {
+        model: ClientModel,
+        paranoid: false
+      }
+    ]
+  });
+  
+  if (!rentalInstance) {
+    throw new RentalNotFoundError(`Rental with ID ${rentalId} not found.`);
+  }
+  
+  if (!rentalInstance.deletedAt) {
+    throw new Error('Rental is not deleted.');
+  }
+  
+  await rentalInstance.restore();
+  return modelToEntity(rentalInstance, carModelToEntity, clientModelToEntity);
 }
 
   async getAllRentals() {

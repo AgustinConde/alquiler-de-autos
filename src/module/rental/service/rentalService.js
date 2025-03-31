@@ -155,6 +155,54 @@ async checkCarAvailability(carId, startDate, endDate) {
   }
 
   /**
+   * @param {number} id
+   * @param {object} rentalData
+   * @returns {Promise<Rental>}
+   */
+  async update(id, rentalData) {
+    if (!Number(id)) {
+      throw new RentalIdNotDefinedError();
+    }
+    
+    const existingRental = await this.getRentalById(id);
+    if (!existingRental) {
+      throw new RentalNotFoundError(`Rental with ID ${id} not found`);
+    }
+    
+    const startDate = rentalData.startDate || existingRental.rentalStart;
+    const endDate = rentalData.endDate || existingRental.rentalEnd;
+
+    console.log('💰 Payment status from form:', rentalData.paymentStatus);
+
+    let paymentProgress = existingRental.paymentProgress;
+    if (rentalData.paymentStatus === 'completed') {
+      paymentProgress = {...isPaid.PAID};
+    } else if (rentalData.paymentStatus === 'pending') {
+      paymentProgress = {...isPaid.PENDING};
+    }
+
+    console.log('💰 Updated payment progress:', JSON.stringify(paymentProgress));
+    
+    const updatedRental = new Rental(
+      existingRental.id,
+      existingRental.rentedCar,
+      existingRental.rentedTo,                 
+      existingRental.pricePerDay,
+      startDate,
+      endDate,
+      rentalData.totalPrice || existingRental.totalPrice,
+      existingRental.paymentMethod,
+      paymentProgress,
+      existingRental.createdAt,
+      new Date(),
+      existingRental.car,
+      existingRental.client
+    );
+    
+    return this.RentalRepository.save(updatedRental);
+  }
+
+  /**
    * @param {number} clientId
    */
   async getRentalsByClientId(clientId) {

@@ -15,7 +15,11 @@ function getRentalProgressById(progressId) {
 }
 
 exports.modelToEntity = (
-  {
+  model,
+  carModelToEntityMapper,
+  clientModelToEntityMapper
+) => {
+  const {
     id,
     rentedCar,
     rentedTo,
@@ -25,15 +29,13 @@ exports.modelToEntity = (
     totalPrice,
     paymentMethod,
     paymentProgress,
-    isPaid: isPaidValue,
+    isPaid,
     createdAt,
     updatedAt,
     Car,
     Client
-  },
-  carModelToEntityMapper,
-  clientModelToEntityMapper
-) => {
+  } = model;
+
   console.log('📊 Mapping rental model to entity:', {
     id,
     hasClient: !!Client,
@@ -44,7 +46,29 @@ exports.modelToEntity = (
     } : null
   });
 
-  const paymentStatus = isPaidValue === undefined ? getRentalProgressById(paymentProgress) : getRentalProgressById(isPaidValue);
+  console.log('🔍 DEBUG - Raw model data:', JSON.stringify({
+    id, 
+    paymentProgress, 
+    isPaid, 
+    objectKeys: Object.keys(model.dataValues || model)
+  }));
+  
+  let paymentValue = null;
+  
+  const rawIsPaid = model.isPaid;
+  
+  let paymentStatus;
+  if (rawIsPaid === true || rawIsPaid === 1) {
+    paymentStatus = require('../entity/RentalIsPaid').isPaid.PAID;
+  } else {
+    paymentStatus = require('../entity/RentalIsPaid').isPaid.PENDING;
+  }
+  
+  console.log('💲 Payment status detection:', {
+    foundRawValue: paymentValue,
+    mapped: paymentStatus.name,
+    value: paymentStatus.value
+  });
 
   return new Rental(
     Number(id),

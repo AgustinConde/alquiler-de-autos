@@ -36,6 +36,10 @@ module.exports = class AuditService {
       await this.carRepository.restore(audit.entityId);
     } else if (audit.entityType === 'client') {
       await this.clientRepository.restore(audit.entityId);
+    } else if (audit.entityType === 'rental') {
+      await this.rentalRepository.restore(audit.entityId);
+    } else {
+      throw new Error(`Unsupported entity type: ${audit.entityType}`);
     }
 
     await this.auditRepository.update(id, { restoredAt: new Date() });

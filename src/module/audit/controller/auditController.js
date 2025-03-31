@@ -67,6 +67,46 @@ module.exports = class AuditController {
         auditData = JSON.parse(auditLog.data);
       }
       
+      if (auditLog.actionType === 'update') {
+        if (auditData.previous && auditData.current) {
+          if (auditData.previous.car && typeof auditData.previous.car === 'object') {
+            auditData.previous.car = `${auditData.previous.car.brand || ''} ${auditData.previous.car.model || ''}`;
+          }
+          
+          if (auditData.previous.client && typeof auditData.previous.client === 'object') {
+            auditData.previous.client = `${auditData.previous.client.name || ''} ${auditData.previous.client.surname || ''}`;
+          }
+          
+          if (auditData.current.car && typeof auditData.current.car === 'object') {
+            auditData.current.car = `${auditData.current.car.brand || ''} ${auditData.current.car.model || ''}`;
+          }
+
+          if (auditData.current.client && typeof auditData.current.client === 'object') {
+            auditData.current.client = `${auditData.current.client.name || ''} ${auditData.current.client.surname || ''}`;
+          }
+
+          if (auditData.previous.paymentProgress && typeof auditData.previous.paymentProgress === 'object') {
+            auditData.previous.paymentProgress = auditData.previous.paymentProgress.name || 
+              (auditData.previous.paymentProgress.value === 1 ? 'Paid' : 'Pending');
+          }
+          
+          if (auditData.current.paymentProgress && typeof auditData.current.paymentProgress === 'object') {
+            auditData.current.paymentProgress = auditData.current.paymentProgress.name || 
+              (auditData.current.paymentProgress.value === 1 ? 'Paid' : 'Pending');
+          }
+          
+          if (auditData.previous.formattedDates && typeof auditData.previous.formattedDates === 'object') {
+            auditData.previous.formattedDates = 
+              `${auditData.previous.startDate || auditData.previous.rentalStart} to ${auditData.previous.endDate || auditData.previous.rentalEnd}`;
+          }
+          
+          if (auditData.current.formattedDates && typeof auditData.current.formattedDates === 'object') {
+            auditData.current.formattedDates = 
+              `${auditData.current.startDate || auditData.current.rentalStart} to ${auditData.current.endDate || auditData.current.rentalEnd}`;
+          }
+        }
+      }
+
       if (auditLog.entityType === 'car' && auditData.Rentals) {
         rentals = auditData.Rentals;
         console.log(`Audit ${auditId} contains ${rentals.length} rentals`);

@@ -10,7 +10,7 @@ module.exports = class AuditModel extends Model {
         allowNull: false
       },
       entityType: {
-        type: DataTypes.ENUM('car', 'client'),
+        type: DataTypes.ENUM('car', 'client', 'rental'),
         allowNull: false
       },
       entityId: {
