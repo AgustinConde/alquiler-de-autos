@@ -69,6 +69,18 @@ module.exports = class AuditController {
       
       if (auditLog.actionType === 'update') {
         if (auditData.previous && auditData.current) {
+          if (auditData.previous.birthdate) {
+            auditData.previous.birthdate = auditData.previous.birthdate.split('T')[0];
+          } else if (auditData.previous.birthDate) {
+            auditData.previous.birthDate = auditData.previous.birthDate.split('T')[0];
+          }
+          
+          if (auditData.current.birthdate) {
+            auditData.current.birthdate = auditData.current.birthdate.split('T')[0];
+          } else if (auditData.current.birthDate) {
+            auditData.current.birthDate = auditData.current.birthDate.split('T')[0];
+          }
+          
           if (auditData.previous.car && typeof auditData.previous.car === 'object') {
             auditData.previous.car = `${auditData.previous.car.brand || ''} ${auditData.previous.car.model || ''}`;
           }

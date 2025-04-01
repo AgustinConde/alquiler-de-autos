@@ -59,6 +59,7 @@ app.use((req, res, next) => {
 });
 
 const container = diConfig();
+app.set('container', container);
 initAuthModule(app, container);
 initCarModule(app, container);
 initClientModule(app, container);

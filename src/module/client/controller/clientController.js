@@ -82,23 +82,43 @@ class ClientController {
    */
   async update(req, res) {
     try {
-      const existingClient = await this.clientService.update(req.params.id, req.body);
+      const clientId = req.params.id;
+      const existingClient = await this.clientService.getClientById(clientId);
 
-      const previousState = { ...existingClient };
-      const clientData = { ...req.body, id };
-      await this.clientService.update(id, clientData);
-      const updatedClient = await this.clientService.getClientById(id);
+      const previousState = {
+        id: existingClient.id,
+        name: existingClient.name,
+        surname: existingClient.surname,
+        idType: existingClient.idType,
+        idNumber: existingClient.idNumber,
+        nationality: existingClient.nationality,
+        address: existingClient.address,
+        phone: existingClient.phone,
+        email: existingClient.email,
+        password: existingClient.password,
+        birthDate: existingClient.birthDate,
+        role: existingClient.role,
+        createdAt: existingClient.createdAt,
+        updatedAt: existingClient.updatedAt,
+        deletedAt: existingClient.deletedAt
+      };
+
+      await this.clientService.update(clientId, req.body);
+      const updatedClient = await this.clientService.getClientById(clientId);
       
       const auditService = req.app.get('container').get('AuditService');
       await auditService.createAuditLog(
         'client',
-        id,
+        clientId,
         'update',
         {
           previous: previousState,
           current: updatedClient
         },
-        req.session.user
+        {
+          id: req.session.clientId,
+          email: req.session.email || req.session.auth?.username
+        }
       );
 
       req.flash('success', 'Client updated successfully');
