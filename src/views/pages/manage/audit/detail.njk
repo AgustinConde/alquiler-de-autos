@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container">
-  <h1 class="title">Audit Log Details #{{ audit.id }}</h1>
+  <h1 class="title pt-5">Audit Log Details #{{ audit.id }}</h1>
   
   <div class="box">
     <h3 class="is-size-4">General Information</h3>
@@ -29,7 +29,7 @@
   
   {% if audit.actionType === 'update' %}
     <div class="box">
-      <h3 class="is-size-4">Changes</h3>
+      <h3 class="is-size-4 pb-4">Changes</h3>
       <div class="columns">
         <div class="column">
           <h4 class="is-size-5">Previous</h4>
