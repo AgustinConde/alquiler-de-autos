@@ -1,7 +1,9 @@
 /* Theme variables */
 :root {
-  --primary-color: #00d1b2;
-  --primary-dark: #00947e;
+  --primary-color-light: #00d1b2;
+  --primary-dark-light: #00947e;
+  --primary-color-dark: #00806c;
+  --primary-dark-dark: #004d40;
 }
 
 html[data-theme="light"] {
@@ -13,6 +15,8 @@ html[data-theme="light"] {
   --footer-bg: #fafafa;
   --hero-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   --input-bg: #ffffff;
+  --primary-color: var(--primary-color-light);
+  --primary-dark: var(--primary-dark-light);
   --box-bg: #ffffff;
   --table-header-bg: #f5f5f5;
   --table-row-even: #fafafa;
@@ -31,6 +35,8 @@ html[data-theme="dark"] {
   --footer-bg: #1e1e1e;
   --hero-gradient: linear-gradient(135deg, #00806c, #004d40);
   --input-bg: #2b2b2b;
+  --primary-color: var(--primary-color-dark);
+  --primary-dark: var(--primary-dark-dark);
   --box-bg: #363636;
   --table-header-bg: #363636;
   --table-row-even: #333333;
@@ -38,6 +44,47 @@ html[data-theme="dark"] {
   --table-hover: #444444;
   --dropdown-bg: #363636;
   --dropdown-hover-bg: #4a4a4a;
+}
+
+html[data-theme="dark"] .title,
+html[data-theme="dark"] .label,
+html[data-theme="dark"] strong,
+html[data-theme="dark"] th {
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .table th {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .card-header-title {
+  color: #ffffff;
+}
+
+html[data-theme="light"] .navbar-link::after,
+html[data-theme="light"] .select::after {
+  border-color: var(--primary-color-light);
+}
+
+html[data-theme="light"] .navbar-link:hover::after,
+html[data-theme="light"] .select:hover::after {
+  border-color: var(--primary-dark-light);
+}
+
+html[data-theme="dark"] .navbar-link::after,
+html[data-theme="dark"] .select::after {
+  border-color: var(--primary-color-dark);
+}
+
+html[data-theme="dark"] .navbar-link:hover::after,
+html[data-theme="dark"] .select:hover::after {
+  border-color: var(--primary-dark-dark);
+}
+
+.navbar-link:hover::after,
+.select:hover::after {
+  border-color: var(--primary-dark) !important;
 }
 
 html {
@@ -65,6 +112,18 @@ body {
   z-index: 30;
 }
 
+.navbar-link::after {
+  border-color: var(--primary-color);
+}
+
+.navbar-link:hover::after {
+  border-color: var(--primary-dark);
+}
+
+.select:after {
+  border-color: var(--primary-color);
+}
+
 .navbar-item,
 .navbar-link {
   color: var(--text-color);
@@ -82,6 +141,16 @@ body {
 .navbar-dropdown .navbar-item:hover {
   background-color: var(--dropdown-hover-bg);
   color: var(--text-color);
+}
+
+.navbar-item .icon {
+  margin-right: 8px;
+}
+
+.navbar-dropdown .navbar-item .icon {
+  margin-right: 8px;
+  width: 20px;
+  text-align: center;
 }
 
 .navbar-item.has-dropdown:hover .navbar-link {
@@ -127,6 +196,14 @@ body {
 .title,
 .label {
   color: var(--text-color);
+}
+
+.button.is-primary {
+  background-color: var(--primary-color);
+}
+
+.button.is-primary:hover {
+  background-color: var(--primary-dark);
 }
 
 .card {
