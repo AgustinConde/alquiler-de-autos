@@ -55,6 +55,7 @@
                                         </span>
                                     </a>
                                     <form action="/manage/clients/{{ client.id }}/delete" method="POST" style="display: inline;">
+                                        {% include "partials/csrf.njk" %}
                                         <button type="submit" class="button is-danger is-small mr-2" title="Delete" 
                                                 onclick="return confirm('Are you sure you want to delete this client?')">
                                             <span class="icon">
@@ -64,6 +65,7 @@
                                     </form>
                                     {% if client.role !== 'admin' %}
                                         <form action="/manage/clients/{{ client.id }}/make-admin" method="POST" style="display: inline;">
+                                            {% include "partials/csrf.njk" %}
                                             <button type="submit" class="button is-success is-small" title="Make Admin">
                                                 <span class="icon">
                                                     <i class="fas fa-user-shield"></i>

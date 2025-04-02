@@ -65,6 +65,7 @@
                                     
                                     {% if log.actionType === 'delete' and not log.restoredAt %}
                                         <form action="{{ ROUTE }}/restore/{{ log.id }}" method="POST">
+                                            {% include "partials/csrf.njk" %}
                                             <button type="submit" class="button is-success" title="Restore">
                                                 <span class="icon">
                                                     <i class="fas fa-undo"></i>

@@ -15,6 +15,7 @@
                     {% endif %}
 
                     <form action="/profile/edit" method="POST">
+                        {% include "partials/csrf.njk" %}
                         <div class="field">
                             <label class="label">Name</label>
                             <div class="control">

@@ -22,6 +22,7 @@
     </p>    
     {% if audit.actionType === 'delete' and not audit.restoredAt %}
       <form method="post" action="{{ ROUTE }}/restore/{{ audit.id }}">
+        {% include "partials/csrf.njk" %}
         <button type="submit" class="button is-warning">Restore</button>
       </form>
     {% endif %}

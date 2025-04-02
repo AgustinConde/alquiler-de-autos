@@ -21,6 +21,7 @@
                     {% endif %}
 
                     <form action="/auth/register" method="POST">
+                        {% include "partials/csrf.njk" %}
                         <div class="columns is-multiline">
                             <div class="column is-half">
                                 <div class="field">

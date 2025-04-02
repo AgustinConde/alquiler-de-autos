@@ -28,6 +28,7 @@ module.exports = session({
     cookie: {
         secure: process.env.USE_HTTPS === 'true',
         httpOnly: true,
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000
     }
 });

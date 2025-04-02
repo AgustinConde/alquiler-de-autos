@@ -21,6 +21,7 @@
                     {% endif %}
 
                     <form action="/auth/login" method="POST">
+                        {% include "partials/csrf.njk" %}
                         <div class="field">
                             <label class="label">Email</label>
                             <div class="control has-icons-left">

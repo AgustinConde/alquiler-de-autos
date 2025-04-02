@@ -69,6 +69,7 @@
                                     </a>
                                     {% if rental.status === 'active' %}
                                         <form action="/manage/rentals/{{ rental.id }}/complete" method="POST" style="display: inline;">
+                                            {% include "partials/csrf.njk" %}
                                             <button type="submit" class="button is-success" title="Complete Rental">
                                                 <span class="icon">
                                                     <i class="fas fa-check"></i>
@@ -77,6 +78,7 @@
                                         </form>
                                     {% endif %}
                                     <form action="/manage/rentals/{{ rental.id }}/delete" method="POST" style="display: inline;">
+                                        {% include "partials/csrf.njk" %}
                                         <button type="submit" class="button is-danger" title="Delete" 
                                                 onclick="return confirm('Are you sure you want to delete this rental?')">
                                             <span class="icon">

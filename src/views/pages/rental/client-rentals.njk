@@ -61,6 +61,7 @@
                     
                     {% if rental.status === 'pending' %}
                       <form action="/profile/rentals/cancel/{{ rental.id }}" method="POST" style="display: inline;">
+                        {% include "partials/csrf.njk" %}
                         <button type="submit" class="button is-danger" title="Cancel Rental"
                                 onclick="return confirm('Are you sure you want to cancel this rental?')">
                           <span class="icon">

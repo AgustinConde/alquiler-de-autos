@@ -15,6 +15,7 @@
                     {% endif %}
 
                     <form action="/manage/cars/create" method="POST" enctype="multipart/form-data">
+                        {% include "partials/csrf.njk" %}
                         <div class="field">
                             <label class="label">Brand</label>
                             <div class="control">

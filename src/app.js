@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const nunjucks = require('nunjucks');
 const flash = require('connect-flash');
+const { v4: uuidv4 } = require('uuid');
+const helmet = require('helmet');
 const dateFilter = require('nunjucks-date-filter');
 const path = require('path');
 const sessionMiddleware = require('./config/session');
@@ -20,6 +22,39 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+        imgSrc: ["'self'", "data:"],
+      }
+    }
+  }));
+
+  app.use((req, res, next) => {
+    if (!req.session.csrfToken) {
+      req.session.csrfToken = uuidv4();
+    }
+    
+    if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+      const token = req.body._csrf || req.headers['x-csrf-token'];
+      
+      if (token !== req.session.csrfToken) {
+        if (req.xhr || req.headers.accept?.includes('json')) {
+          return res.status(403).json({ error: 'CSRF token validation failed' });
+        }
+        req.flash('error', 'Form submission failed. Please try again.');
+        return res.redirect('back');
+      }
+    }
+    
+    res.locals.csrfToken = req.session.csrfToken;
+    next();
+  });
 
 const viewPaths = [
     path.join(__dirname, 'views'),
