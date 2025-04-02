@@ -80,7 +80,15 @@ module.exports = class AuthController {
                   }
               });
           });
-          res.redirect('/');
+          const returnTo = req.session.returnTo;
+          delete req.session.returnTo;
+
+          if (returnTo) {
+              console.log('↩️ Redirecting to saved URL:', returnTo);
+              res.redirect(returnTo);
+          } else {
+              res.redirect('/');
+          }
       } catch (error) {
           console.error('❌ Login error:', error);
           req.flash('error', 'Invalid credentials');

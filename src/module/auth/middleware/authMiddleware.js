@@ -34,6 +34,11 @@ function isAuthenticated(req, res, next) {
     }
 
     if (!req.session?.auth) {
+        if (!req.path.startsWith('/auth/')) {
+            req.session.returnTo = req.originalUrl;
+            console.log('💾 Saved return URL:', req.originalUrl);
+        }
+        
         req.flash('error', 'Please login to continue');
         return res.redirect('/auth/login');
     }

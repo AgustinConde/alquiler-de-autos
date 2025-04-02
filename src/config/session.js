@@ -24,7 +24,7 @@ module.exports = session({
     }),
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         secure: process.env.USE_HTTPS === 'true',
         httpOnly: true,
