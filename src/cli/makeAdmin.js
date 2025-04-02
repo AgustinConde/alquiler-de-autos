@@ -17,7 +17,7 @@ async function makeAdmin(email) {
         const sequelize = new Sequelize({
             dialect: 'sqlite',
             storage: dbPath,
-            logging: msg => console.log('SQL:', msg)
+            logging: process.env.NODE_ENV === 'development' ? console.log : false,
         });
 
         await sequelize.authenticate();
@@ -35,7 +35,6 @@ async function makeAdmin(email) {
 
         const clientId = auth.clientId;
         
-        // Buscar el cliente
         const client = await Client.findByPk(clientId);
         if (!client) {
             console.error(`No client found with ID: ${clientId}`);
