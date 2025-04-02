@@ -138,6 +138,19 @@ module.exports = class AuthController {
    */
   async processRegister(req, res) {
     try {
+        const requiredFields = ['name', 'surname', 'email', 'phone', 'idType', 'idNumber', 'password'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+            req.flash('error', `Missing required fields: ${missingFields.join(', ')}`);
+            return res.redirect('/auth/register');
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(req.body.email)) {
+            req.flash('error', 'Invalid email format');
+            return res.redirect('/auth/register');
+        }
         if (req.body.password !== req.body.confirmPassword) {
             req.flash('error', 'Passwords do not match');
             return res.redirect('/auth/register');
