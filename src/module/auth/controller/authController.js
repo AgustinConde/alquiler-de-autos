@@ -1,5 +1,43 @@
 const { isAuthenticated } = require('../middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const ms = require('ms');
+
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 min.
+  max: 5,
+  standardHeaders: true,
+  store: {
+    init: () => {},
+    increment: (key) => {
+      const record = attemptStore.get(key) || { counter: 0, resetTime: Date.now() + 15 * 60 * 1000 };
+      record.counter++;
+      attemptStore.set(key, record);
+      return record;
+    },
+    decrement: (key) => {
+      const record = attemptStore.get(key);
+      if (record) {
+        record.counter--;
+        attemptStore.set(key, record);
+      }
+    },
+    resetKey: (key) => attemptStore.delete(key),
+    resetAll: () => attemptStore.clear(),
+    get: (key) => {
+      const record = attemptStore.get(key);
+      return record ? record.counter : 0;
+    },
+  },
+  message: (req, res) => {
+    const key = req.ip;
+    const record = attemptStore.get(key);
+    if (!record) return 'Too many login attempts. Please try again later.';
+    
+    const timeLeft = Math.ceil((record.resetTime - Date.now()) / (60 * 1000)); // en minutos
+    return `Too many login attempts. Please try again in ${timeLeft} minutes.`;
+  }
+});
 
 module.exports = class AuthController {
     /**
@@ -28,7 +66,7 @@ module.exports = class AuthController {
     configureRoutes(app) {
       const ROUTE = this.ROUTE_BASE;
       app.get(`${ROUTE}/login`, this.login.bind(this));
-      app.post(`${ROUTE}/login`, this.processLogin.bind(this));
+      app.post(`${ROUTE}/login`, loginLimiter, this.processLogin.bind(this));
       app.get(`${ROUTE}/logout`, (req, res) => this.logout(req, res));
       app.get(`${ROUTE}/register`, (req, res) => this.register(req, res));
       app.post(`${ROUTE}/register`, (req, res) => this.processRegister(req, res));

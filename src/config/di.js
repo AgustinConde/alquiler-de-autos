@@ -67,10 +67,26 @@ function configureMulter() {
       cb(null, dir);
     },
     filename(req, file, cb) {
-      cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+      const sanitizedName = path.basename(file.originalname).replace(/[^a-zA-Z0-9_.-]/g, '_');
+      cb(null, `${file.fieldname}-${Date.now()}${path.extname(sanitizedName)}`);
     },
   });
-  return multer({ storage });
+
+  const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'), false);
+    }
+  };
+  
+  return multer({ 
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5 MB
+    }
+  });
 }
 
 /**

@@ -71,7 +71,12 @@ module.exports = class AuthService {
         birthDate: clientData.birthDate
       });
 
-      const passwordHash = await bcrypt.hash(clientData.password, 10);
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+      if (!passwordRegex.test(clientData.password)) {
+        throw new Error('Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number');
+      }
+
+      const passwordHash = await bcrypt.hash(clientData.password, 12);
       
       const savedAuth = await this.authRepository.save({
         username: clientData.email,
