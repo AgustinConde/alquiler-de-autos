@@ -25,32 +25,85 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(__dirname, '..', 'public', 'favicon.ico');
+  
+  res.sendFile(faviconPath, (err) => {
+    if (err) {
+      console.log('⚠️ Favicon not found, sending empty response');
+      res.status(204).end();
+    }
+  });
+});
+
 app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-        fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-        imgSrc: ["'self'", "data:"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://use.fontawesome.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://use.fontawesome.com"],
+        fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://use.fontawesome.com", "data:"],
+        imgSrc: ["'self'", "data:", "https://use.fontawesome.com"],
+        connectSrc: ["'self'", "https://use.fontawesome.com"],
       }
-    }
+    },
+    referrerPolicy: { policy: "no-referrer-when-downgrade" }
   }));
 
-  app.use((req, res, next) => {
+app.use(sessionMiddleware);
+app.use(flash());
+
+app.use((req, res, next) => {
+    if (req.method === 'GET' && (
+      req.path.endsWith('.ico') || 
+      req.path.startsWith('/css/') || 
+      req.path.startsWith('/js/') ||
+      req.path.startsWith('/images/') ||
+      req.path.startsWith('/uploads/') ||
+      req.path === '/favicon.ico' ||
+      req.hostname === 'use.fontawesome.com'
+    )) {
+      return next();
+    }
+
     if (!req.session.csrfToken) {
       req.session.csrfToken = uuidv4();
     }
     
     if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
-      const token = req.body._csrf || req.headers['x-csrf-token'];
+      let token = null;
+      
+      if (req.body && req.body._csrf) {
+        token = req.body._csrf;
+      }
+      
+      if (!token && req.headers['x-csrf-token']) {
+        token = req.headers['x-csrf-token'];
+      }
+      
+      if (!token && req.query && req.query._csrf) {
+        token = req.query._csrf;
+      }
+      
+      if (!token && req.body && typeof req.body === 'object') {
+        if (JSON.stringify(req.body).includes('_csrf')) {
+          console.log('🔍 Buscando token CSRF en body procesado:', req.body);
+        }
+      }
       
       if (token !== req.session.csrfToken) {
+        console.log('❌ CSRF validation failed', { 
+          provided: token,
+          expected: req.session.csrfToken
+        });
+        
         if (req.xhr || req.headers.accept?.includes('json')) {
           return res.status(403).json({ error: 'CSRF token validation failed' });
         }
         req.flash('error', 'Form submission failed. Please try again.');
         return res.redirect('back');
+      } else {
+        console.log('✅ CSRF token validated successfully');
       }
     }
     
@@ -71,8 +124,7 @@ const env = nunjucks.configure(viewPaths, {
 app.set('view engine', 'njk');
 env.addFilter('date', dateFilter);
 
-app.use(sessionMiddleware);
-app.use(flash());
+
 app.use(isAuthenticated);
 
 app.use((req, res, next) => {
