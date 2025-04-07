@@ -15,6 +15,8 @@ const { initClientModule } = require('./module/client/clientModule');
 const { initRentalModule } = require('./module/rental/rentalModule');
 const { initAuditModule } = require('./module/audit/auditModule');
 const { initAuthModule } = require('./module/auth/authModule');
+const { initPaymentModule } = require('./module/payment/paymentModule');
+const { connect } = require('http2');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -100,6 +102,7 @@ initCarModule(app, container);
 initClientModule(app, container);
 initRentalModule(app, container);
 initAuditModule(app, container);
+initPaymentModule(app, container);
 
 const rentalSequelize = container.get('RentalSequelize');
 

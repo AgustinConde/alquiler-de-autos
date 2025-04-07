@@ -11,6 +11,8 @@ const { ClientController, ClientService, ClientRepository, ClientModel } = requi
 const { RentalController, RentalService, RentalRepository, RentalModel } = require('../module/rental/rentalModule');
 const { AuthController, AuthService, AuthRepository, AuthModel } = require('../module/auth/authModule');
 const { AuditController, AuditService, AuditRepository, AuditModel,} = require('../module/audit/auditModule');
+const { PaymentController, PaymentService, PaymentRepository, PaymentModel } = require('../module/payment/paymentModule');
+
 
 function configureRentalSequelize() {
     return new Sequelize({
@@ -57,6 +59,15 @@ function configureAuthModule(container) {
  */
 function configureAuditModule(container) {
   return AuditModel.setup(container.get('RentalSequelize'));
+}
+
+/**
+ * @param {DIContainer} container
+ */
+function configurePaymentModule(container) {
+  const model = PaymentModel.setup(container.get('RentalSequelize'));
+  model.setAssociations(container.get('RentalModel'));
+  return model;
 }
 
 function configureMulter() {
@@ -190,6 +201,21 @@ function addAuditModuleDefinitions(container) {
 }
 
 /**
+ * @param {DIContainer} container
+ */
+function addPaymentModuleDefinitions(container) {
+  container.addDefinitions({
+    PaymentModel: factory(configurePaymentModule),
+    PaymentRepository: object(PaymentRepository).construct(get('PaymentModel')),
+    PaymentService: object(PaymentService).construct(
+      get('PaymentRepository'),
+      get('RentalService')
+    ),
+    PaymentController: object(PaymentController).construct(get('PaymentService'))
+  });
+}
+
+/**
  * @returns {DIContainer}
  */
 module.exports = function diConfig() {
@@ -205,6 +231,7 @@ module.exports = function diConfig() {
   addAuditModuleDefinitions(container);
   addRentalModuleDefinitions(container);
   addAuthModuleDefinitions(container);
+  addPaymentModuleDefinitions(container);
 
   return container;
 }

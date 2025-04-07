@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/AgustinConde/alquiler-de-autos#readme",
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "bulma": "^1.0.3",

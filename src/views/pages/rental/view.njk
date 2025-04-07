@@ -85,6 +85,17 @@
                     {% endif %}
 
                     <div class="field is-grouped is-grouped-centered mt-5">
+                        {% if rental.status === 'pending' and from != 'manage' %}
+                            <p class="control">
+                                <a href="/payment/initiate/{{ rental.id }}" class="button is-primary">
+                                    <span class="icon">
+                                        <i class="fab fa-paypal"></i>
+                                    </span>
+                                    <span>Pay with PayPal</span>
+                                </a>
+                            </p>
+                        {% endif %}
+                        
                         <p class="control">
                             {% if from == 'manage' %}
                                 <a href="/manage/rentals" class="button is-light">

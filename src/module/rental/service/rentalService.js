@@ -203,6 +203,19 @@ async checkCarAvailability(carId, startDate, endDate) {
   }
 
   /**
+ * @param {number} rentalId
+ * @param {boolean} isPaidStatus
+ * @returns {Promise<Rental>}
+ */
+async updatePaymentStatus(rentalId, isPaidStatus) {
+  console.log('📝 Updating rental payment status:', { rentalId, isPaidStatus });
+  
+  return this.update(rentalId, {
+    paymentStatus: isPaidStatus ? 'completed' : 'pending'
+  });
+}
+
+  /**
    * @param {number} clientId
    */
   async getRentalsByClientId(clientId) {

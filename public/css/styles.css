@@ -48,6 +48,7 @@ html[data-theme="dark"] {
 
 html[data-theme="dark"] .title,
 html[data-theme="dark"] .label,
+html[data-theme="dark"] .subtitle,
 html[data-theme="dark"] strong,
 html[data-theme="dark"] th {
   color: #ffffff;
