@@ -3,38 +3,65 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const ms = require('ms');
 
+const attemptStore = new Map();
 const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 min.
+  windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
-  standardHeaders: true,
+  standardHeaders: true, 
+  legacyHeaders: false,
   store: {
     init: () => {},
     increment: (key) => {
-      const record = attemptStore.get(key) || { counter: 0, resetTime: Date.now() + 15 * 60 * 1000 };
-      record.counter++;
+      const now = Date.now();
+      const resetTime = now + 10 * 60 * 1000;
+      
+      let record = attemptStore.get(key) || { 
+        totalHits: 0, 
+        resetTime: new Date(resetTime)
+      };
+      
+      record.totalHits += 1;
       attemptStore.set(key, record);
-      return record;
+      
+      return {
+        totalHits: record.totalHits,
+        resetTime: record.resetTime
+      };
     },
     decrement: (key) => {
       const record = attemptStore.get(key);
       if (record) {
-        record.counter--;
+        record.totalHits -= 1;
         attemptStore.set(key, record);
       }
+      return undefined;
     },
     resetKey: (key) => attemptStore.delete(key),
     resetAll: () => attemptStore.clear(),
     get: (key) => {
       const record = attemptStore.get(key);
-      return record ? record.counter : 0;
-    },
+      if (!record) {
+        return {
+          totalHits: 0,
+          resetTime: new Date(Date.now() + 10 * 60 * 1000)
+        };
+      }
+      return {
+        totalHits: record.totalHits,
+        resetTime: record.resetTime
+      };
+    }
   },
   message: (req, res) => {
     const key = req.ip;
     const record = attemptStore.get(key);
-    if (!record) return 'Too many login attempts. Please try again later.';
+    if (!record) {
+      return 'Too many login attempts. Please try again later.';
+    }
     
-    const timeLeft = Math.ceil((record.resetTime - Date.now()) / (60 * 1000)); // en minutos
+    const timeLeft = Math.max(0, Math.ceil(
+      (record.resetTime.getTime() - Date.now()) / (60 * 1000)
+    ));
     return `Too many login attempts. Please try again in ${timeLeft} minutes.`;
   }
 });
@@ -98,41 +125,44 @@ module.exports = class AuthController {
      */
     async processLogin(req, res) {
       try {
-          const { email, password } = req.body;
-          const { auth, client } = await this.authService.login(email, password);
-          
-          req.session.clientId = client.id;
-          req.session.auth = {
-              id: auth.id,
-              username: auth.username
-          };
-          req.session.role = client.role;
-  
-          await new Promise((resolve, reject) => {
-              req.session.save(err => {
-                  if (err) {
-                      console.error('❌ Session save error:', err);
-                      reject(err);
-                  } else {
-                      resolve();
-                  }
-              });
-          });
-          const returnTo = req.session.returnTo;
-          delete req.session.returnTo;
+        const { email, password } = req.body;
+        console.log('🔐 Authenticating user:', email);
+        const { auth, client } = await this.authService.login(email, password);
+        
+        req.session.clientId = client.id;
+        req.session.auth = {
+          id: auth.id,
+          username: auth.username
+        };
+        req.session.role = client.role;
+    
+        console.log('✅ Login successful for:', email);
+        
+        let returnTo = req.session.returnTo;
 
-          if (returnTo) {
-              console.log('↩️ Redirecting to saved URL:', returnTo);
-              res.redirect(returnTo);
-          } else {
-              res.redirect('/');
-          }
+        delete req.session.returnTo;
+        
+        if (returnTo === '/favicon.ico' || 
+            returnTo?.endsWith('.ico') || 
+            returnTo?.endsWith('.js') || 
+            returnTo?.endsWith('.css') || 
+            returnTo?.endsWith('.jpg') || 
+            returnTo?.endsWith('.png')) {
+          returnTo = '/';
+        }
+        
+        if (returnTo) {
+          console.log('↩️ Redirecting to saved URL:', returnTo);
+          return res.redirect(returnTo);
+        }
+        
+        res.redirect('/');
       } catch (error) {
-          console.error('❌ Login error:', error);
-          req.flash('error', 'Invalid credentials');
-          res.redirect('/auth/login');
+        console.error('❌ Login error:', error);
+        req.flash('error', 'Invalid credentials');
+        res.redirect('/auth/login');
       }
-  }
+    }
   
     /**
      * @param {import('express').Request} req

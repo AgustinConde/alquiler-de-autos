@@ -16,12 +16,14 @@ function isAdmin(req, res, next) {
 }
 
 function isAuthenticated(req, res, next) {
-    console.log('🔒 Auth check for:', req.path);
-    console.log('📍 Session:', {
-        clientId: req.session?.clientId,
-        auth: req.session?.auth,
-        role: req.session?.auth?.role
-    });
+    if (!isStaticResource(req.path)) {
+        console.log('🔒 Auth check for:', req.path);
+        console.log('📍 Session:', {
+            clientId: req.session?.clientId,
+            auth: req.session?.auth,
+            role: req.session?.auth?.role
+        });
+    }
 
     res.locals.isAuthenticated = !!req.session?.auth;
     res.locals.auth = req.session?.auth;
@@ -29,12 +31,12 @@ function isAuthenticated(req, res, next) {
 
     const publicPaths = ['/', '/auth/login', '/auth/register', '/auth/logout', '/cars'];
     
-    if (publicPaths.includes(req.path)) {
+    if (publicPaths.includes(req.path) || isStaticResource(req.path)) {
         return next();
     }
 
     if (!req.session?.auth) {
-        if (!req.path.startsWith('/auth/')) {
+        if (!req.path.startsWith('/auth/') && !isStaticResource(req.path)) {
             req.session.returnTo = req.originalUrl;
             console.log('💾 Saved return URL:', req.originalUrl);
         }
@@ -44,6 +46,19 @@ function isAuthenticated(req, res, next) {
     }
 
     next();
+}
+
+
+function isStaticResource(path) {
+    const staticExtensions = ['.ico', '.jpg', '.jpeg', '.png', '.gif', 
+                            '.svg', '.css', '.js', '.map', '.woff', 
+                            '.woff2', '.ttf', '.eot', '.webp'];
+    
+    const staticDirs = ['/favicon.ico', '/css/', '/js/', '/images/', 
+                      '/assets/', '/fonts/', '/uploads/'];
+    
+    return staticExtensions.some(ext => path.endsWith(ext)) || 
+           staticDirs.some(dir => path === dir || path.startsWith(dir));
 }
 
 module.exports = { isAdmin, isAuthenticated };
