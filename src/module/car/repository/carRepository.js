@@ -48,6 +48,11 @@ module.exports = class CarRepository {
     const lastCar = await this.carModel.findOne({
       order: [['id', 'DESC']],
     });
+
+    if (!lastCar) {
+      throw new Error('No cars found');
+    }
+    
     return modelToEntity(lastCar);
   }
 
@@ -113,7 +118,7 @@ module.exports = class CarRepository {
     }
   
     console.log(`✅ Car ${car.id} marked as deleted. Creating audit log...`);
-    await auditRepository.logAction('car', car.id, 'delete', carData, currentUser);
+    await this.auditRepository.logAction('car', car.id, 'delete', carModel.toJSON(), null);
   
     await carModel.destroy();
     return car;
