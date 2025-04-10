@@ -44,6 +44,10 @@ class ClientService {
     return this.clientRepository.getClientById(clientId);
   }
 
+  async getClientByEmail(email) {
+    return this.clientRepository.getClientByEmail(email);
+  }
+
   async delete(id) {
     const client = await Client.findByPk(id, {
       include: [{ model: Rental }]
