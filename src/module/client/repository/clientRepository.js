@@ -15,9 +15,26 @@ class ClientRepository {
    * @param {import('../entity/Client')} client
    */
   async save(client) {
+    if (!(client instanceof Client)) {
+      throw new ClientNotDefinedError();
+    }
+
     try {
       console.log('📦 Saving client data:', client);
-      const clientInstance = await this.clientModel.create(client);
+      const clientData = require('../mapper/clientMapper').entityToModel(client);
+
+      let clientInstance;
+      if (client.id) {
+        clientInstance = await this.clientModel.findByPk(client.id);
+        if (clientInstance) {
+          await clientInstance.update(clientData);
+        } else {
+          throw new Error(`Client with ID ${client.id} not found`);
+        }
+      } else {
+        clientInstance = await this.clientModel.create(clientData);
+      }
+      
       console.log('✅ Client instance created:', clientInstance.toJSON());
       return clientInstance.toJSON();
     } catch (error) {
@@ -99,7 +116,24 @@ class ClientRepository {
   }
 
   async getClientById(id) {
-    return this.clientModel.findByPk(id);
+    if (!Number(id)) {
+      throw new ClientIdNotDefinedError();
+    }
+
+    const client = await this.clientModel.findByPk(id);
+    if (!client) {
+      throw new ClientNotFoundError(`Client with ID ${id} not found`);
+    }
+    
+    return modelToEntity(client);
+  }
+
+  async getClientByEmail(email) {
+    const client = await this.clientModel.findOne({
+      where: { email }
+    });
+    
+    return client ? modelToEntity(client) : null;
   }
 
   async restore(clientId) {
