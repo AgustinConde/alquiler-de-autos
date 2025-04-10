@@ -1,5 +1,6 @@
 const { ClientNotDefinedError, ClientIdNotDefinedError } = require('../error/clientError');
 const Client = require('../entity/Client');
+const Rental = require('../../rental/entity/Rental');
 
 class ClientService {
   /**
