@@ -58,12 +58,13 @@ exports.formToEntity = ({
   'id-number': idNumber,
   nationality,
   address,
-  'phone': phone,
+  phone,
   email,
   birthDate,
+  role,
   'created-at': createdAt,
-}) =>
-  new Client(
+}) => {
+  return new Client({
     id,
     name,
     surname,
@@ -74,5 +75,7 @@ exports.formToEntity = ({
     phone,
     email,
     birthDate,
+    role,
     createdAt
-  );
+  })
+};

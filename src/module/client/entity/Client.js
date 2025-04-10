@@ -11,6 +11,7 @@ module.exports = class Client {
     email,
     password,
     birthDate,
+    role,
     createdAt,
     updatedAt,
     deletedAt
@@ -26,6 +27,7 @@ module.exports = class Client {
     this.email = email;
     this.password = password;
     this.birthDate = birthDate;
+    this.role = role;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.deletedAt = deletedAt;
