@@ -80,7 +80,9 @@ module.exports = class Rental {
     const MILISECONDS_IN_A_DAY = 86400000;
     const endDate = new Date(this.rentalEnd).getTime();
     const startDate = new Date(this.rentalStart).getTime();
-    return Math.ceil((endDate - startDate) / MILISECONDS_IN_A_DAY);
+    const daysDiff = Math.ceil((endDate - startDate) / MILISECONDS_IN_A_DAY);
+    
+    return daysDiff === 0 ? 1 : daysDiff;
   }
 
   /**
