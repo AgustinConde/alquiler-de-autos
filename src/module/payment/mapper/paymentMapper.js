@@ -39,12 +39,12 @@ exports.formToEntity = ({
   updatedAt
 }) => {
   return new Payment(
-    id,
+    Number(id),
     Number(rentalId),
     Number(amount),
     provider,
     transactionId,
-    getPaymentStatusById(status),
+    getPaymentStatusById(Number(status)),
     createdAt,
     updatedAt
   );
