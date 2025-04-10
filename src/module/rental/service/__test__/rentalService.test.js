@@ -13,6 +13,8 @@ describe('RentalService', () => {
     getRentalsByClientId: jest.fn(),
     delete: jest.fn(),
     restore: jest.fn(),
+    getOverlappingRentals: jest.fn(),
+    updatePaymentStatus: jest.fn(),
   };
   
   const mockCarRepository = {
@@ -104,38 +106,40 @@ describe('RentalService', () => {
     test('should return true when car is available', async () => {
       mockRentalRepository.getRentalsByCarId.mockResolvedValue([]);
       
-      const result = await rentalService.checkCarAvailability(
-        1, 
-        '2023-01-15', 
-        '2023-01-20'
-      );
+      const carId = 1;
+      const startDate = '2023-01-01';
+      const endDate = '2023-01-05';
+      
+      const result = await rentalService.checkCarAvailability(carId, startDate, endDate);
       
       expect(result).toBe(true);
+      expect(mockRentalRepository.getRentalsByCarId).toHaveBeenCalledWith(carId);
     });
     
-    test('should throw error when car is not available', async () => {
-      const existingRental = new Rental(
+    test('should return false when car is not available', async () => {
+      const overlappingRental = new Rental(
         1, // id
         1, // carId
         1, // clientId
         50, // pricePerDay
-        new Date('2023-01-18'), // startDate
-        new Date('2023-01-25'), // endDate
-        500, // totalPrice
-        'Card', // paymentMethod
-        isPaid.PAID, // paymentProgress
-        new Date(), // createdAt
-        new Date(), // updatedAt
-        { brand: 'Toyota', model: 'Corolla' }, // car
-        { name: 'John', surname: 'Doe' } // client
+        new Date('2023-01-02'), // startDate
+        new Date('2023-01-04'), // endDate
+        100,
+        'Card',
+        isPaid.PENDING,
+        new Date(),
+        new Date()
       );
-      mockRentalRepository.getRentalsByCarId.mockResolvedValue([existingRental]);
       
-      await expect(rentalService.checkCarAvailability(
-        1, 
-        '2023-01-15', 
-        '2023-01-20'
-      )).rejects.toThrow('This car is not available for the selected dates');
+      mockRentalRepository.getRentalsByCarId.mockResolvedValue([overlappingRental]);
+      
+      const carId = 1;
+      const startDate = '2023-01-01';
+      const endDate = '2023-01-05';
+      
+      await expect(rentalService.checkCarAvailability(carId, startDate, endDate))
+        .rejects
+        .toThrow('This car is not available for the selected dates');
     });
   });
 
@@ -266,6 +270,127 @@ describe('RentalService', () => {
       await expect(rentalService.cancelRental(rentalId, wrongClientId))
         .rejects
         .toThrow('Unauthorized');
+    });
+  });
+
+  describe('checkCarAvailability', () => {
+    test('should return true when car is available', async () => {
+      mockRentalRepository.getRentalsByCarId.mockResolvedValue([]);
+      
+      const carId = 1;
+      const startDate = '2025-01-01';
+      const endDate = '2025-01-05';
+      
+      const result = await rentalService.checkCarAvailability(carId, startDate, endDate);
+      
+      expect(result).toBe(true);
+      expect(mockRentalRepository.getRentalsByCarId).toHaveBeenCalledWith(carId);
+    });
+    
+    test('should throw error when car is not available', async () => {
+      const overlappingRental = new Rental(
+        1, // id
+        1, // carId
+        1, // clientId
+        50, // pricePerDay
+        new Date('2025-01-02'), // startDate
+        new Date('2025-01-04'), // endDate
+        100,
+        'Card',
+        isPaid.PENDING,
+        new Date(),
+        new Date()
+      );
+      
+      mockRentalRepository.getRentalsByCarId.mockResolvedValue([overlappingRental]);
+      
+      const carId = 1;
+      const startDate = '2025-01-01';
+      const endDate = '2025-01-05';
+      
+      await expect(rentalService.checkCarAvailability(carId, startDate, endDate))
+        .rejects
+        .toThrow('This car is not available for the selected dates');
+    });
+  });
+  
+  describe('getRentalsByClientId', () => {
+    test('should return rentals for a client', async () => {
+      const clientId = 1;
+      const mockRentals = [
+        new Rental(1, 1, clientId, 50, new Date(), new Date(), 100, 'Card', isPaid.PENDING, new Date(), new Date())
+      ];
+      
+      mockRentalRepository.getRentalsByClientId.mockResolvedValue(mockRentals);
+      
+      const result = await rentalService.getRentalsByClientId(clientId);
+      
+      expect(result).toEqual(mockRentals);
+      expect(mockRentalRepository.getRentalsByClientId).toHaveBeenCalledWith(clientId);
+    });
+    
+    test('should throw error if clientId is not provided', async () => {
+      await expect(rentalService.getRentalsByClientId()).rejects.toThrow();
+    });
+  });
+  
+  describe('getAll', () => {
+    test('should return all rentals', async () => {
+      const mockRentals = [
+        new Rental(1, 1, 1, 50, new Date(), new Date(), 100, 'Card', isPaid.PENDING, new Date(), new Date())
+      ];
+      
+      mockRentalRepository.getAllRentals.mockResolvedValue(mockRentals);
+      
+      const result = await rentalService.getAll();
+      
+      expect(result).toEqual(mockRentals);
+      expect(mockRentalRepository.getAllRentals).toHaveBeenCalled();
+    });
+  });
+  
+  describe('getRentalById', () => {
+    test('should return rental by id', async () => {
+      const rentalId = 1;
+      const mockRental = new Rental(
+        rentalId, 1, 1, 50, new Date(), new Date(), 100, 'Card', isPaid.PENDING, new Date(), new Date()
+      );
+      
+      mockRentalRepository.getRentalById.mockResolvedValue(mockRental);
+      
+      const result = await rentalService.getRentalById(rentalId);
+      
+      expect(result).toEqual(mockRental);
+      expect(mockRentalRepository.getRentalById).toHaveBeenCalledWith(rentalId);
+    });
+    
+    test('should throw error if rentalId is not provided', async () => {
+      await expect(rentalService.getRentalById()).rejects.toThrow();
+    });
+  });
+  
+  describe('updatePaymentStatus', () => {
+    test('should update payment status of a rental', async () => {
+      const rentalId = 1;
+      const isPaidStatus = true;
+      
+      const updateSpy = jest.spyOn(rentalService, 'update').mockImplementation(async () => {
+        return {
+          id: rentalId,
+          paymentProgress: isPaidStatus ? isPaid.PAID : isPaid.PENDING
+        };
+      });
+      
+      await rentalService.updatePaymentStatus(rentalId, isPaidStatus);
+      
+      expect(updateSpy).toHaveBeenCalledWith(
+        rentalId, 
+        expect.objectContaining({
+          paymentStatus: isPaidStatus ? 'completed' : 'pending'
+        })
+      );
+      
+      updateSpy.mockRestore();
     });
   });
 });
