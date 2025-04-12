@@ -51,6 +51,8 @@ module.exports = class Car {
     }
   
     get fullName(){
-      return `${this.brand} ${this.model}`;
+      const brand = this.brand || '';
+      const model = this.model || '';
+      return `${brand} ${model}`;
     }
   };
