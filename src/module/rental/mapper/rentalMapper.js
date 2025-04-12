@@ -2,22 +2,16 @@ const Rental = require("../entity/Rental");
 const clientMapper = require('../../client/mapper/clientMapper');
 const { isPaid } = require('../entity/RentalIsPaid');
 
-/**
- * @param {number} progressId
- */
-function getRentalProgressById(progressId) {
-  if (progressId === undefined || progressId === null) {
-    return isPaid.PENDING;
+function determinePaymentStatus(statusValue) {
+  if (statusValue === true || statusValue === 1 || statusValue === 'completed') {
+    return isPaid.PAID;
   }
-  
-  const progressList = Object.values(isPaid);
-  return progressList.find(isPaid => isPaid.value == progressId) || isPaid.PENDING;
+  return isPaid.PENDING; 
 }
 
 exports.modelToEntity = (
   model,
   carModelToEntityMapper,
-  clientModelToEntityMapper
 ) => {
   const {
     id,
@@ -96,18 +90,28 @@ exports.formToEntity = ({
   'rental-end': rentalEnd,
   'total-price': totalPrice,
   'payment-method': paymentMethod,
-  'is-paid': isPaid,
+  'is-paid': isPaidValue,
+  'payment-status': paymentStatus,
   'created-at': createdAt,
-}) =>
-  new Rental(
+}) => {
+  const startDate = rentalStart ? new Date(rentalStart) : undefined;
+  const endDate = rentalEnd ? new Date(rentalEnd) : undefined;
+  
+  const finalPaymentStatus = determinePaymentStatus(paymentStatus || isPaidValue);
+
+  const finalPricePerDay = pricePerDay !== undefined ? Number(pricePerDay) : undefined;
+  const finalTotalPrice = totalPrice !== undefined ? Number(totalPrice) : undefined;
+
+  return new Rental(
     id,
-    Number(rentedCar),
-    Number(rentedTo),
-    pricePerDay,
-    rentalStart,
-    rentalEnd,
-    totalPrice,
+    rentedCar !== undefined ? Number(rentedCar) : undefined,
+    rentedTo !== undefined ? Number(rentedTo) : undefined,
+    finalPricePerDay,
+    startDate,
+    endDate,
+    finalTotalPrice,
     paymentMethod,
-    isPaid,
+    finalPaymentStatus,
     createdAt
   );
+};

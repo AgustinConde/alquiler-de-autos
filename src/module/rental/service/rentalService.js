@@ -44,7 +44,12 @@ module.exports = class RentalService {
       throw new RentalIdNotDefinedError();
     }
 
-    return this.RentalRepository.getRentalById(rentalId);
+    const rental = await this.RentalRepository.getRentalById(rentalId);
+    if (!rental) {
+      throw new RentalNotFoundError(`Rental with ID ${rentalId} not found`);
+    }
+    
+    return rental;
   }
 
   /**
@@ -165,10 +170,7 @@ async checkCarAvailability(carId, startDate, endDate) {
     }
     
     const existingRental = await this.getRentalById(id);
-    if (!existingRental) {
-      throw new RentalNotFoundError(`Rental with ID ${id} not found`);
-    }
-    
+
     const startDate = rentalData.startDate || existingRental.rentalStart;
     const endDate = rentalData.endDate || existingRental.rentalEnd;
 
