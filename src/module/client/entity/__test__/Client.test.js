@@ -16,6 +16,7 @@ describe('Client', () => {
         email: 'john@example.com',
         password: 'securepass',
         birthDate: now,
+        role: 'client',
         createdAt: now,
         updatedAt: now,
         deletedAt: null
@@ -32,6 +33,7 @@ describe('Client', () => {
       expect(client.email).toBe('john@example.com');
       expect(client.password).toBe('securepass');
       expect(client.birthDate).toBe(now);
+      expect(client.role).toBe('client');
       expect(client.createdAt).toBe(now);
       expect(client.updatedAt).toBe(now);
       expect(client.deletedAt).toBe(null);
