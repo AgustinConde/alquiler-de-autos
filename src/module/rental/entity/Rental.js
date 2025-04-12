@@ -108,15 +108,15 @@ module.exports = class Rental {
   }
 
   get status() {
-    if (!this.paymentProgress) return 'pending';
+    if (!this.paymentProgress) return 'Pending';
     
     if (this.paymentProgress.value === isPaid.PAID.value) {
-      return 'completed';
+      return 'Completed';
     } else if (this.paymentProgress.value === isPaid.PENDING.value) {
-      return 'pending';
+      return 'Pending';
     }
     
-    return 'pending';
+    return 'Pending';
   }
 
   get startDate() {
