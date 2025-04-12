@@ -53,12 +53,17 @@ describe('PaymentService', () => {
   let paymentService;
   let mockPaymentRepository;
   let mockRentalService;
+  let originalEnv;
   
   beforeEach(() => {
+    originalEnv = { ...process.env };
+    
     mockPaymentRepository = {
       save: jest.fn(),
       getById: jest.fn(),
-      getByRentalId: jest.fn()
+      getByRentalId: jest.fn(),
+      getAll: jest.fn(),
+      delete: jest.fn()
     };
     
     mockRentalService = {
@@ -71,6 +76,7 @@ describe('PaymentService', () => {
   
   afterEach(() => {
     jest.clearAllMocks();
+    process.env = originalEnv;
   });
   
   describe('getPayPalClient', () => {
@@ -82,6 +88,46 @@ describe('PaymentService', () => {
       
       expect(paypal.core.PayPalHttpClient).toHaveBeenCalled();
       expect(client).toBeDefined();
+    });
+    
+    test('should handle missing PayPal client ID', () => {
+      delete process.env.PAYPAL_CLIENT_ID;
+      process.env.PAYPAL_CLIENT_SECRET = 'test_secret';
+      
+      const consoleSpy = jest.spyOn(console, 'log');
+      
+      const client = paymentService.getPayPalClient();
+      
+      expect(consoleSpy).toHaveBeenCalledWith('PayPal Client ID available:', false);
+      expect(consoleSpy).toHaveBeenCalledWith('⚠️ WARNING: PayPal Client ID is not configured');
+      expect(client).toBeDefined();
+      
+      consoleSpy.mockRestore();
+    });
+    
+    test('should handle missing PayPal client secret', () => {
+      process.env.PAYPAL_CLIENT_ID = 'test_client_id';
+      delete process.env.PAYPAL_CLIENT_SECRET;
+      
+      const consoleSpy = jest.spyOn(console, 'log');
+      
+      const client = paymentService.getPayPalClient();
+      
+      expect(consoleSpy).toHaveBeenCalledWith('⚠️ WARNING: PayPal Client Secret is not configured');
+      expect(client).toBeDefined();
+      
+      consoleSpy.mockRestore();
+    });
+    
+    test('should use live environment in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.PAYPAL_CLIENT_ID = 'test_client_id';
+      process.env.PAYPAL_CLIENT_SECRET = 'test_secret';
+      
+      paymentService.getPayPalClient();
+      
+      expect(paypal.core.LiveEnvironment).toHaveBeenCalled();
+      expect(paypal.core.SandboxEnvironment).not.toHaveBeenCalled();
     });
   });
   
@@ -121,6 +167,40 @@ describe('PaymentService', () => {
         .rejects
         .toThrow('Rental not found');
     });
+    
+    test('should handle PayPal errors during payment creation', async () => {
+      const rentalId = 123;
+      const mockRental = {
+        id: rentalId,
+        totalPrice: 100,
+        car: {
+          brand: 'Toyota',
+          model: 'Corolla'
+        }
+      };
+      
+      mockRentalService.getRentalById.mockResolvedValue(mockRental);
+      mockPaymentRepository.save.mockResolvedValue({});
+      
+      const mockError = new Error('PayPal API error');
+      const mockClient = {
+        execute: jest.fn().mockRejectedValue(mockError)
+      };
+      jest.spyOn(paymentService, 'getPayPalClient').mockReturnValue(mockClient);
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      await expect(paymentService.createPayment(rentalId, 'returnUrl', 'cancelUrl'))
+        .rejects
+        .toThrow('PayPal API error');
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '❌ Error creating PayPal payment:', 
+        expect.any(Error)
+      );
+      
+      consoleSpy.mockRestore();
+    });
   });
   
   describe('capturePayment', () => {
@@ -141,6 +221,71 @@ describe('PaymentService', () => {
         transactionId: 'TEST_ORDER_ID',
         status: 'completed'
       });
+    });
+    
+    test('should handle case when no payments found for rental', async () => {
+      const orderId = 'TEST_ORDER_ID';
+      const rentalId = 123;
+      
+      mockPaymentRepository.getByRentalId.mockResolvedValue([]);
+      
+      const result = await paymentService.capturePayment(orderId, rentalId);
+      
+      expect(mockPaymentRepository.getByRentalId).toHaveBeenCalledWith(rentalId);
+      expect(mockPaymentRepository.save).not.toHaveBeenCalled();
+      expect(mockRentalService.updatePaymentStatus).toHaveBeenCalledWith(rentalId, true);
+      expect(result).toEqual({
+        transactionId: 'TEST_ORDER_ID',
+        status: 'completed'
+      });
+    });
+    
+    test('should handle PayPal errors during payment capture', async () => {
+      const orderId = 'TEST_ORDER_ID';
+      const rentalId = 123;
+      
+      const mockError = new Error('PayPal capture error');
+      const mockClient = {
+        execute: jest.fn().mockRejectedValue(mockError)
+      };
+      jest.spyOn(paymentService, 'getPayPalClient').mockReturnValue(mockClient);
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      await expect(paymentService.capturePayment(orderId, rentalId))
+        .rejects
+        .toThrow('PayPal capture error');
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '❌ Error capturing PayPal payment:', 
+        expect.any(Error)
+      );
+      
+      consoleSpy.mockRestore();
+    });
+  });
+  
+  describe('getPaymentsByRentalId', () => {
+    test('should return payments by rental ID', async () => {
+      const rentalId = 123;
+      const mockPayments = [
+        new Payment(1, rentalId, 100, 'PayPal', 'tx123', paymentStatus.COMPLETED, new Date(), new Date())
+      ];
+      
+      mockPaymentRepository.getByRentalId.mockResolvedValue(mockPayments);
+      
+      const result = await paymentService.getPaymentsByRentalId(rentalId);
+      
+      expect(mockPaymentRepository.getByRentalId).toHaveBeenCalledWith(rentalId);
+      expect(result).toBe(mockPayments);
+    });
+    
+    test('should return empty array when no payments found', async () => {
+      mockPaymentRepository.getByRentalId.mockResolvedValue([]);
+      
+      const result = await paymentService.getPaymentsByRentalId(999);
+      
+      expect(result).toEqual([]);
     });
   });
 });
