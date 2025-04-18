@@ -1,34 +1,27 @@
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
-const fs = require('fs');
+const { prepareSessionStorage } = require('./sessionUtils');
 
 const dataDir = path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
+const sessionsPath = path.join(dataDir, 'sessions.sqlite');
 
-if (process.env.NODE_ENV !== 'production') {
-        const sessionsPath = path.join(dataDir, 'sessions.sqlite');
-        if (fs.existsSync(sessionsPath)) {
-            fs.unlinkSync(sessionsPath);
-            console.log('🗑️ Old sessions cleared');
-        }
-}
+prepareSessionStorage({
+  dataDir,
+  sessionsFile: sessionsPath,
+  nodeEnv: process.env.NODE_ENV,
+});
 
 module.exports = session({
-    store: new SQLiteStore({
-        db: 'sessions.sqlite',
-        dir: dataDir,
-        table: 'sessions'
-    }),
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        secure: process.env.USE_HTTPS === 'true',
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000
-    }
+  store: new SQLiteStore({
+    db: 'sessions.sqlite',
+    dir: dataDir,
+  }),
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    sameSite: true,
+  },
 });
