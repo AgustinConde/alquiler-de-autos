@@ -1,4 +1,4 @@
-// Script intended to be used in https://structurizr.com/dsl for replicating the C4 Diagrams in 'docs' folder
+// Script destinado a ser utilizado en https://structurizr.com/dsl para replicar los Diagramas C4 en la carpeta 'docs/es'
 
 workspace "Rent-a-Car" "Proyecto de sistema de alquiler de autos"{
 
