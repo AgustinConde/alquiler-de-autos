@@ -182,7 +182,7 @@ module.exports = class AuthController {
    * @param {import('express').Response} res
    */
   authMiddleware(req, res, next) {
-      if (!isAuthenticated) {
+      if (!isAuthenticated(req)) {
           return res.redirect("/auth/login");
       }
       next();
