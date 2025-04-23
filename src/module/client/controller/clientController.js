@@ -174,7 +174,7 @@ class ClientController {
   async save(req, res) {
     const client = formToEntity(req.body);
     await this.clientService.save(client);
-    res.redirect(`${this.ROUTE_BASE}/manage`);
+    res.redirect(`${this.ADMIN_ROUTE}`);
   }
 
   /**
