@@ -99,7 +99,7 @@ module.exports = class RentalModel extends Model {
    * @param {typeof import('../../car/model/carModel')} CarModel
    * @param {typeof import('../../client/model/clientModel')} ClientModel
    */
-  static setAssociations() {
+  static setAssociations(CarModel, ClientModel) {
     CarModel.hasMany(RentalModel, {
       foreignKey: "rentedCar",
       onDelete: "CASCADE",
