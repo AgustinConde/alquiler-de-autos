@@ -60,6 +60,62 @@ describe('Auth Middleware', () => {
       expect(res.redirect).toHaveBeenCalledWith('/auth/login');
       expect(next).not.toHaveBeenCalled();
     });
+
+    test('should handle static resources properly', () => {
+      const req = {
+        path: '/images/logo.png',
+        session: {
+          clientId: 1,
+          auth: { id: 1 }
+        },
+        flash: jest.fn()
+      };
+      
+      const res = {
+        redirect: jest.fn(),
+        locals: {}
+      };
+      
+      const next = jest.fn();
+      
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      
+      isAuthenticated(req, res, next);
+      
+      expect(console.log).not.toHaveBeenCalled();
+      
+      expect(next).toHaveBeenCalled();
+      
+      console.log = originalConsoleLog;
+    });
+
+    test('should not save returnTo for auth routes when unauthenticated', () => {
+      const req = {
+        path: '/auth/profile',
+        originalUrl: '/auth/profile',
+        session: {},
+        flash: jest.fn()
+      };
+      
+      const res = {
+        redirect: jest.fn(),
+        locals: {}
+      };
+      
+      const next = jest.fn();
+      
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      
+      isAuthenticated(req, res, next);
+      
+      expect(req.session.returnTo).toBeUndefined();
+      expect(res.redirect).toHaveBeenCalledWith('/auth/login');
+      expect(next).not.toHaveBeenCalled();
+      
+      console.log = originalConsoleLog;
+    });
   });
 
   describe('isAdmin', () => {

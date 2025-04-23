@@ -28,12 +28,30 @@ describe('AuthService', () => {
   });
   
   describe('login', () => {
-    test('should throw error when user is not found', async () => {
+    test('should throw error when auth exists but client profile is not found', async () => {
+      const mockAuth = {
+        id: 1,
+        username: 'test@example.com',
+        passwordHash: 'hashed_password',
+        clientId: 1
+      };
+      
+      mockAuthRepository.getByUsername.mockResolvedValue(mockAuth);
+      mockClientRepository.getClientById.mockResolvedValue(null);
+      
+      await expect(authService.login('test@example.com', 'correct_password'))
+        .rejects
+        .toThrow('User account not found');
+    });
+
+    test('should throw error when auth record is not found', async () => {
       mockAuthRepository.getByUsername.mockResolvedValue(null);
       
-      await expect(authService.login('unknown@example.com', 'password'))
+      await expect(authService.login('nonexistent@example.com', 'any-password'))
         .rejects
         .toThrow('Invalid credentials');
+        
+      expect(mockAuthRepository.getByUsername).toHaveBeenCalledWith('nonexistent@example.com');
     });
     
     test('should throw error when password is incorrect', async () => {
@@ -70,6 +88,33 @@ describe('AuthService', () => {
       
       const result = await authService.login('test@example.com', 'correct_password');
       
+      expect(result).toEqual({
+        auth: mockAuth,
+        client: mockClient
+      });
+    });
+
+    test('should fall back to email search when auth has no clientId', async () => {
+      const mockAuth = {
+        id: 1,
+        username: 'test@example.com',
+        passwordHash: 'hashed_password',
+        clientId: null  // No clientId
+      };
+      
+      const mockClient = {
+        id: 2,
+        name: 'Test',
+        surname: 'User',
+        email: 'test@example.com'
+      };
+      
+      mockAuthRepository.getByUsername.mockResolvedValue(mockAuth);
+      mockClientRepository.getByEmail = jest.fn().mockResolvedValue(mockClient);
+      
+      const result = await authService.login('test@example.com', 'correct_password');
+      
+      expect(mockClientRepository.getByEmail).toHaveBeenCalledWith('test@example.com');
       expect(result).toEqual({
         auth: mockAuth,
         client: mockClient
@@ -148,8 +193,144 @@ describe('AuthService', () => {
         .rejects
         .toThrow('Email already registered');
     });
+  });
 
+  describe('getClientProfile', () => {
+    test('should return client profile', async () => {
+      const clientId = 1;
+      const mockClient = {
+        id: clientId,
+        name: 'Test',
+        email: 'test@example.com'
+      };
+      
+      mockClientRepository.getClientById.mockResolvedValue(mockClient);
+      
+      const result = await authService.getClientProfile(clientId);
+      
+      expect(result).toEqual(mockClient);
+    });
+    
+    test('should throw error when client is not found', async () => {
+      const clientId = 999;
+      
+      mockClientRepository.getClientById.mockResolvedValue(null);
+      
+      await expect(authService.getClientProfile(clientId))
+        .rejects
+        .toThrow('Client not found');
+    });
+  });
 
+  describe('updateProfile', () => {
+    beforeEach(() => {
+      mockClientRepository.update = jest.fn();
+    });
+    
+    test('should update client profile', async () => {
+      const clientId = 1;
+      const updateData = {
+        name: 'Updated Name',
+        surname: 'Updated Surname',
+        phone: '9876543210',
+        address: 'Updated Address'
+      };
+      
+      const existingClient = {
+        id: clientId,
+        name: 'Original Name',
+        surname: 'Original Surname'
+      };
+      
+      const updatedClient = {
+        ...existingClient,
+        ...updateData
+      };
+      
+      mockClientRepository.getClientById.mockResolvedValue(existingClient);
+      mockClientRepository.update.mockResolvedValue(updatedClient);
+      
+      const result = await authService.updateProfile(clientId, updateData);
+      
+      expect(result).toEqual(updatedClient);
+    });
+    
+    test('should throw error when required fields are missing', async () => {
+      const clientId = 1;
+      const updateData = {
+        name: 'Updated Name',
+        // Missing surname, phone, and address
+      };
+      
+      const existingClient = {
+        id: clientId,
+        name: 'Original Name',
+        surname: 'Original Surname'
+      };
+      
+      mockClientRepository.getClientById.mockResolvedValue(existingClient);
+      
+      await expect(authService.updateProfile(clientId, updateData))
+        .rejects
+        .toThrow('All fields are required');
+    });
+
+    test('should throw error when client does not exist for updateProfile', async () => {
+      const clientId = 999;
+      const updateData = {
+        name: 'Updated Name',
+        surname: 'Updated Surname',
+        phone: '9876543210',
+        address: 'Updated Address'
+      };
+      
+      mockClientRepository.getClientById.mockResolvedValue(null);
+      
+      await expect(authService.updateProfile(clientId, updateData))
+        .rejects
+        .toThrow('Client not found');
+        
+      expect(mockClientRepository.getClientById).toHaveBeenCalledWith(clientId);
+      expect(mockClientRepository.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateRole', () => {
+    beforeEach(() => {
+      mockClientRepository.update = jest.fn();
+    });
+    
+    test('should update user role', async () => {
+      const clientId = 1;
+      const role = 'admin';
+      
+      const existingClient = {
+        id: clientId,
+        name: 'Test User',
+        role: 'client'
+      };
+      
+      mockClientRepository.getClientById.mockResolvedValue(existingClient);
+      mockClientRepository.update.mockResolvedValue({...existingClient, role});
+      
+      const result = await authService.updateRole(clientId, role);
+      
+      expect(result).toEqual(existingClient);
+    });
+
+    test('should throw error when client does not exist for updateRole', async () => {
+      const clientId = 999;
+      const role = 'admin';
+      
+      mockClientRepository.getClientById.mockResolvedValue(null);
+      
+      await expect(authService.updateRole(clientId, role))
+        .rejects
+        .toThrow('Client not found');
+        
+      expect(mockClientRepository.getClientById).toHaveBeenCalledWith(clientId);
+      expect(mockClientRepository.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('changePassword', () => {
@@ -194,6 +375,34 @@ describe('AuthService', () => {
       await expect(authService.changePassword(clientId, currentPassword, newPassword))
         .rejects
         .toThrow('Current password is incorrect');
+    });
+
+    test('should throw error when auth record is not found', async () => {
+      const clientId = 999;
+      const currentPassword = 'oldPassword';
+      const newPassword = 'NewPassword123';
+      
+      mockAuthRepository.getAuthByClientId.mockResolvedValue(null);
+      
+      await expect(authService.changePassword(clientId, currentPassword, newPassword))
+        .rejects
+        .toThrow('Authentication not found');
+    });
+  });
+
+  describe('getAuthByClientId', () => {
+    test('should return auth by client id', async () => {
+      const clientId = 1;
+      const mockAuth = {
+        id: 1,
+        clientId: clientId
+      };
+      
+      mockAuthRepository.getAuthByClientId.mockResolvedValue(mockAuth);
+      
+      const result = await authService.getAuthByClientId(clientId);
+      
+      expect(result).toEqual(mockAuth);
     });
   });
 });
