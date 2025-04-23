@@ -50,21 +50,21 @@ module.exports = class CarController {
     }
   }
 
-  async show(req, res) {
+  async show(req, res, next) {
     try {
-      const { carId } = req.params;
-      if (!Number(carId)) {
+      const id = req.params.id;
+      if (!Number(id)) {
         throw new CarIdNotDefinedError();
       }
 
-      const car = await this.carService.getById(carId);
+      const car = await this.carService.getById(id);
       res.render(`${this.CAR_VIEWS}/view.njk`, {
         title: `${car.brand} ${car.model} ${car.year} info`,
         car,
         rentals: car.rentals,
       });
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
