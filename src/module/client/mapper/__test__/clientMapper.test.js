@@ -94,6 +94,30 @@ describe('clientMapper', () => {
       expect(rentalMapper.modelToEntity).toHaveBeenCalledWith(model.Rentals[0]);
       expect(rentalMapper.modelToEntity).toHaveBeenCalledWith(model.Rentals[1]);
     });
+
+    test('should handle model without rentals property', () => {
+      const model = {
+        id: 1,
+        name: 'John',
+        surname: 'Doe',
+        email: 'john@example.com',
+        toJSON: () => ({
+          id: 1,
+          name: 'John',
+          surname: 'Doe',
+          email: 'john@example.com'
+        })
+      };
+      
+      const result = modelToEntity(model);
+      
+      expect(result).toBeInstanceOf(Client);
+      expect(result.id).toBe(1);
+      expect(result.name).toBe('John');
+      expect(result.surname).toBe('Doe');
+      expect(result.email).toBe('john@example.com');
+      expect(result).toBeInstanceOf(Client);
+    });
   });
   
   describe('formToEntity', () => {
