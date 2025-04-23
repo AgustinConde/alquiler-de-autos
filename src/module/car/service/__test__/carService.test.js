@@ -67,7 +67,63 @@ describe('CarService', () => {
     });
   });
 
+  describe('getCars', () => {
+    test('should return filtered cars when includeDeleted is false', async () => {
+      const filteredCars = [
+        new Car(1, 'Toyota', 'Corolla', 2020, 5000, 'Red', true, 5, 'automatic', 50, '/img/car1.jpg', new Date(), new Date(), null, []),
+        new Car(2, 'Honda', 'Civic', 2019, 15000, 'Blue', true, 5, 'automatic', 45, '/img/car2.jpg', new Date(), new Date(), null, [])
+      ];
+      
+      mockCarRepository.getAllCars.mockResolvedValue(filteredCars);
+      
+      const result = await carService.getCars(false);
+      
+      expect(mockCarRepository.getAllCars).toHaveBeenCalled();
+      expect(mockCarRepository.getUnfilteredCars).not.toHaveBeenCalled();
+      expect(result).toEqual(filteredCars);
+    });
+    
+    test('should return all cars including deleted when includeDeleted is true', async () => {
+      const allCars = [
+        new Car(1, 'Toyota', 'Corolla', 2020, 5000, 'Red', true, 5, 'automatic', 50, '/img/car1.jpg', new Date(), new Date(), null, []),
+        new Car(2, 'Honda', 'Civic', 2019, 15000, 'Blue', true, 5, 'automatic', 45, '/img/car2.jpg', new Date(), new Date(), new Date(), []) // Coche eliminado
+      ];
+      
+      mockCarRepository.getUnfilteredCars.mockResolvedValue(allCars);
+      
+      const result = await carService.getCars(true);
+      
+      expect(mockCarRepository.getUnfilteredCars).toHaveBeenCalled();
+      expect(mockCarRepository.getAllCars).not.toHaveBeenCalled();
+      expect(result).toEqual(allCars);
+    });
+
+    test('should use default value (false) when parameter is not provided', async () => {
+      const filteredCars = [
+        new Car(1, 'Toyota', 'Corolla', 2020, 5000, 'Red', true, 5, 'automatic', 50, '/img/car1.jpg', new Date(), new Date(), null, []),
+        new Car(2, 'Honda', 'Civic', 2019, 15000, 'Blue', true, 5, 'automatic', 45, '/img/car2.jpg', new Date(), new Date(), null, [])
+      ];
+      
+      mockCarRepository.getAllCars.mockResolvedValue(filteredCars);
+      
+      const result = await carService.getCars();
+      
+      expect(mockCarRepository.getAllCars).toHaveBeenCalled();
+      expect(mockCarRepository.getUnfilteredCars).not.toHaveBeenCalled();
+      expect(result).toEqual(filteredCars);
+    });
+  });
+
   describe('getCarById', () => {
+    test('should handle error when car is not found', async () => {
+      mockCarRepository.getCarById.mockResolvedValue(null);
+      
+      const result = await carService.getCarById(999);
+      
+      expect(result).toBeNull();
+      expect(mockCarRepository.getCarById).toHaveBeenCalledWith(999);
+    });
+    
     test('should throw CarIdNotDefinedError when id is invalid', async () => {
       await expect(carService.getCarById(null))
         .rejects
@@ -106,6 +162,46 @@ describe('CarService', () => {
       expect(result).toEqual(car);
     });
   });
+
+  describe('getUnfilteredCars', () => {
+    test('should call getCars with true parameter', async () => {
+      const deletedCars = [
+        new Car(1, 'Toyota', 'Corolla', 2020, 5000, 'Red', true, 5, 'automatic', 50, '/img/car1.jpg', new Date(), new Date(), new Date(), []), // Coche eliminado
+        new Car(2, 'Honda', 'Civic', 2019, 15000, 'Blue', true, 5, 'automatic', 45, '/img/car2.jpg', new Date(), new Date(), new Date(), []) // Coche eliminado
+      ];
+      
+      mockCarRepository.getUnfilteredCars.mockResolvedValue(deletedCars);
+      
+      const result = await carService.getUnfilteredCars();
+      
+      expect(mockCarRepository.getUnfilteredCars).toHaveBeenCalled();
+      expect(result).toEqual(deletedCars);
+    });
+  });
+  
+  describe('getCarsLength', () => {
+    test('should return number of cars from repository', async () => {
+      mockCarRepository.getCarsLength.mockResolvedValue(5);
+      
+      const result = await carService.getCarsLength();
+      
+      expect(mockCarRepository.getCarsLength).toHaveBeenCalled();
+      expect(result).toBe(5);
+    });
+  });
+  
+  describe('getLastCar', () => {
+    test('should return the last car from repository', async () => {
+      const lastCar = new Car(99, 'Nissan', 'Leaf', 2022, 1000, 'Green', true, 5, 'automatic', 40, '/img/leaf.jpg', new Date(), new Date(), null, []);
+      
+      mockCarRepository.getLastCar.mockResolvedValue(lastCar);
+      
+      const result = await carService.getLastCar();
+      
+      expect(mockCarRepository.getLastCar).toHaveBeenCalled();
+      expect(result).toBe(lastCar);
+    });
+  });
   
   describe('restore', () => {
     test('should restore a deleted car', async () => {
@@ -132,6 +228,15 @@ describe('CarService', () => {
       await expect(carService.restore(999))
         .rejects
         .toThrow('Car with ID 999 not found.');
+    });
+
+    test('should throw CarIdNotDefinedError when id is invalid for restore', async () => {
+      await expect(carService.restore(null)).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carService.restore(undefined)).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carService.restore('abc')).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carService.restore('')).rejects.toThrow(CarIdNotDefinedError);
+      
+      expect(mockCarRepository.restore).not.toHaveBeenCalled();
     });
   });
 

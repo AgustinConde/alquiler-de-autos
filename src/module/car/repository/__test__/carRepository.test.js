@@ -159,6 +159,53 @@ describe('CarRepository', () => {
         expect(result.model).toBe('Corolla');
       });
   });
+
+  describe('getUnfilteredCars', () => {
+    test('should return all cars including deleted ones', async () => {
+      const mockCars = [
+        {
+          id: 1,
+          brand: 'Toyota',
+          model: 'Corolla',
+          year: 2020,
+          deletedAt: null,
+          toJSON: () => ({
+            id: 1,
+            brand: 'Toyota',
+            model: 'Corolla',
+            year: 2020,
+            deletedAt: null
+          })
+        },
+        {
+          id: 2,
+          brand: 'Honda',
+          model: 'Civic',
+          year: 2019,
+          deletedAt: new Date(),
+          toJSON: () => ({
+            id: 2,
+            brand: 'Honda',
+            model: 'Civic',
+            year: 2019,
+            deletedAt: new Date()
+          })
+        }
+      ];
+      
+      mockCarModel.findAll.mockResolvedValue(mockCars);
+      
+      const result = await carRepository.getUnfilteredCars();
+      
+      expect(mockCarModel.findAll).toHaveBeenCalledWith({
+        paranoid: false
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeInstanceOf(Car);
+      expect(result[1]).toBeInstanceOf(Car);
+      expect(result[1].deletedAt).toBeDefined();
+    });
+  });
   
   describe('getUnfilteredCarById', () => {
     test('should return car by id including soft deleted ones', async () => {
@@ -188,6 +235,37 @@ describe('CarRepository', () => {
       }));
       expect(result).toBeInstanceOf(Car);
       expect(result.deletedAt).toBeDefined();
+    });
+
+    test('should throw CarIdNotDefinedError when id is invalid', async () => {
+      await expect(carRepository.getUnfilteredCarById(null)).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carRepository.getUnfilteredCarById('abc')).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carRepository.getUnfilteredCarById(undefined)).rejects.toThrow(CarIdNotDefinedError);
+      
+      expect(mockCarModel.findByPk).not.toHaveBeenCalled();
+    });
+
+    test('should throw CarNotFoundError when car does not exist', async () => {
+      mockCarModel.findByPk.mockResolvedValue(null);
+      
+      await expect(carRepository.getUnfilteredCarById(999))
+        .rejects
+        .toThrow(CarNotFoundError);
+      
+      expect(mockCarModel.findByPk).toHaveBeenCalledWith(999, expect.objectContaining({
+        paranoid: false
+      }));
+    });
+  });
+
+  describe('getCarsLength', () => {
+    test('should return the number of cars', async () => {
+      mockCarModel.count.mockResolvedValue(5);
+      
+      const result = await carRepository.getCarsLength();
+      
+      expect(mockCarModel.count).toHaveBeenCalled();
+      expect(result).toBe(5);
     });
   });
 
@@ -225,6 +303,87 @@ describe('CarRepository', () => {
         );
         expect(mockCarInstance.destroy).toHaveBeenCalled();
       });
+
+      test('should throw error when car has active rentals', async () => {
+        const car = new Car(
+          1, 'Toyota', 'Corolla', 2020, 5000, 'Red', 
+          true, 5, 'automatic', 50, '/img/car1.jpg', 
+          new Date(), new Date(), null, []
+        );
+        
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const mockCarInstance = {
+          Rentals: [
+            {
+              id: 1,
+              rentalStart: new Date(),
+              rentalEnd: tomorrow
+            }
+          ],
+          toJSON: jest.fn().mockReturnValue({
+            id: 1,
+            brand: 'Toyota',
+            model: 'Corolla'
+          })
+        };
+        
+        mockCarModel.findByPk.mockResolvedValue(mockCarInstance);
+        
+        await expect(carRepository.delete(car))
+          .rejects
+          .toThrow('Cannot delete car with active rentals');
+        
+        expect(mockAuditRepository.logAction).not.toHaveBeenCalled();
+      });
+
+      test('should throw CarNotDefinedError when not a Car instance', async () => {
+        const notACar = { 
+          id: 1, 
+          brand: 'Toyota'
+        };
+        
+        await expect(carRepository.delete(notACar))
+          .rejects
+          .toThrow(CarNotDefinedError);
+        
+        expect(mockCarModel.findByPk).not.toHaveBeenCalled();
+      });
+      
+      test('should allow deletion when car has only past rentals', async () => {
+        const car = new Car(
+          1, 'Toyota', 'Corolla', 2020, 5000, 'Red', 
+          true, 5, 'automatic', 50, '/img/car1.jpg', 
+          new Date(), new Date(), null, []
+        );
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const mockCarInstance = {
+          Rentals: [
+            {
+              id: 1,
+              rentalStart: yesterday,
+              rentalEnd: yesterday
+            }
+          ],
+          destroy: jest.fn().mockResolvedValue({}),
+          toJSON: jest.fn().mockReturnValue({
+            id: 1,
+            brand: 'Toyota'
+          })
+        };
+        
+        mockCarModel.findByPk.mockResolvedValue(mockCarInstance);
+        mockAuditRepository.logAction.mockResolvedValue({});
+        
+        await carRepository.delete(car);
+        
+        expect(mockCarInstance.destroy).toHaveBeenCalled();
+        expect(mockAuditRepository.logAction).toHaveBeenCalled();
+      });
   });
 
   describe('restore', () => {
@@ -259,6 +418,39 @@ describe('CarRepository', () => {
       await expect(carRepository.restore(999))
         .rejects
         .toThrow(`Car with ID 999 not found.`);
+    });
+
+    test('should throw CarIdNotDefinedError when id is invalid for restore', async () => {
+      await expect(carRepository.restore(null)).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carRepository.restore('abc')).rejects.toThrow(CarIdNotDefinedError);
+      await expect(carRepository.restore(undefined)).rejects.toThrow(CarIdNotDefinedError);
+      
+      expect(mockCarModel.findByPk).not.toHaveBeenCalled();
+    });
+
+    test('should throw error when car is not deleted', async () => {
+      const carId = 1;
+      const mockNonDeletedCar = {
+        id: carId,
+        brand: 'Toyota',
+        model: 'Corolla',
+        deletedAt: null,
+        restore: jest.fn(),
+        toJSON: () => ({
+          id: carId,
+          brand: 'Toyota',
+          model: 'Corolla',
+          deletedAt: null
+        })
+      };
+      
+      mockCarModel.findByPk.mockResolvedValue(mockNonDeletedCar);
+      
+      await expect(carRepository.restore(carId))
+        .rejects
+        .toThrow('Car is not deleted.');
+      
+      expect(mockNonDeletedCar.restore).not.toHaveBeenCalled();
     });
   });
 
