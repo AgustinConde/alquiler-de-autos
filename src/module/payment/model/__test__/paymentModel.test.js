@@ -29,7 +29,6 @@ describe('PaymentModel', () => {
     expect(RentalModel.hasMany).toHaveBeenCalledWith(PaymentModel, { foreignKey: 'rentalId' });
     expect(PaymentModel.belongsTo).toHaveBeenCalledWith(RentalModel, { foreignKey: 'rentalId' });
     expect(result).toBe(PaymentModel);
-    // Limpieza
     delete PaymentModel.belongsTo;
   });
 });
