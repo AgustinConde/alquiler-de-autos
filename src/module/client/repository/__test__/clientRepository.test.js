@@ -5,7 +5,7 @@ const { ClientNotDefinedError, ClientIdNotDefinedError, ClientNotFoundError } = 
 jest.mock('../../mapper/clientMapper', () => ({
   entityToModel: jest.fn(),
   modelToEntity: jest.fn()
-}), { virtual: true });
+}));
 
 const clientMapper = require('../../mapper/clientMapper');
 
