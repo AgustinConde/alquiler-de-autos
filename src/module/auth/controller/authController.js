@@ -4,66 +4,65 @@ const rateLimit = require('express-rate-limit');
 const ms = require('ms');
 
 const attemptStore = new Map();
+const loginLimiterStore = {
+  init: () => {},
+  increment: (key) => {
+    const now = Date.now();
+    const resetTime = now + 10 * 60 * 1000;
+    let record = attemptStore.get(key) || {
+      totalHits: 0,
+      resetTime: new Date(resetTime)
+    };
+    record.totalHits += 1;
+    attemptStore.set(key, record);
+    return {
+      totalHits: record.totalHits,
+      resetTime: record.resetTime
+    };
+  },
+  decrement: (key) => {
+    const record = attemptStore.get(key);
+    if (record) {
+      record.totalHits -= 1;
+      attemptStore.set(key, record);
+    }
+    return undefined;
+  },
+  resetKey: (key) => attemptStore.delete(key),
+  resetAll: () => attemptStore.clear(),
+  get: (key) => {
+    const record = attemptStore.get(key);
+    if (!record) {
+      return {
+        totalHits: 0,
+        resetTime: new Date(Date.now() + 10 * 60 * 1000)
+      };
+    }
+    return {
+      totalHits: record.totalHits,
+      resetTime: record.resetTime
+    };
+  }
+};
+const loginLimiterMessage = (req, res) => {
+  const key = req.ip;
+  const record = attemptStore.get(key);
+  if (!record) {
+    return 'Too many login attempts. Please try again later.';
+  }
+  const timeLeft = Math.max(0, Math.ceil(
+    (record.resetTime.getTime() - Date.now()) / (60 * 1000)
+  ));
+  return `Too many login attempts. Please try again in ${timeLeft} minutes.`;
+};
+
 const loginLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
   standardHeaders: true, 
   legacyHeaders: false,
-  store: {
-    init: () => {},
-    increment: (key) => {
-      const now = Date.now();
-      const resetTime = now + 10 * 60 * 1000;
-      
-      let record = attemptStore.get(key) || { 
-        totalHits: 0, 
-        resetTime: new Date(resetTime)
-      };
-      
-      record.totalHits += 1;
-      attemptStore.set(key, record);
-      
-      return {
-        totalHits: record.totalHits,
-        resetTime: record.resetTime
-      };
-    },
-    decrement: (key) => {
-      const record = attemptStore.get(key);
-      if (record) {
-        record.totalHits -= 1;
-        attemptStore.set(key, record);
-      }
-      return undefined;
-    },
-    resetKey: (key) => attemptStore.delete(key),
-    resetAll: () => attemptStore.clear(),
-    get: (key) => {
-      const record = attemptStore.get(key);
-      if (!record) {
-        return {
-          totalHits: 0,
-          resetTime: new Date(Date.now() + 10 * 60 * 1000)
-        };
-      }
-      return {
-        totalHits: record.totalHits,
-        resetTime: record.resetTime
-      };
-    }
-  },
-  message: (req, res) => {
-    const key = req.ip;
-    const record = attemptStore.get(key);
-    if (!record) {
-      return 'Too many login attempts. Please try again later.';
-    }
-    
-    const timeLeft = Math.max(0, Math.ceil(
-      (record.resetTime.getTime() - Date.now()) / (60 * 1000)
-    ));
-    return `Too many login attempts. Please try again in ${timeLeft} minutes.`;
-  }
+  store: loginLimiterStore,
+  message: loginLimiterMessage
 });
 
 module.exports = class AuthController {
@@ -378,3 +377,7 @@ module.exports = class AuthController {
     }
   }
 };
+
+module.exports.loginLimiter = loginLimiter;
+module.exports.loginLimiterStore = loginLimiterStore;
+module.exports.loginLimiterMessage = loginLimiterMessage;
