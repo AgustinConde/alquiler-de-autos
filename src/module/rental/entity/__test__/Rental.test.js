@@ -62,20 +62,19 @@ describe('Rental', () => {
       expect(rental.formattedDates.endDate).toContain('5/5/2023');
     });
     
-    test('should handle null and undefined dates', () => {
-        const rental = new Rental(1, 101, 201, 50, null, undefined, 200, 'Cash');
-  
-        expect(rental.formattedDates.startDate).not.toBe('');
-        expect(rental.formattedDates.endDate).not.toBe('');
-        
-        const originalDatePrototype = Date.prototype.toLocaleString;
-        Date.prototype.toLocaleString = jest.fn(() => '');
-        
-        const result = rental.formatDate();
-        Date.prototype.toLocaleString = originalDatePrototype;
-        
-        expect(result).toHaveProperty('startDate');
-        expect(result).toHaveProperty('endDate');
+    test('should handle null date values directly in formatDate', () => {
+      const rental = new Rental(
+        1, 101, 201, 50, new Date(), new Date(), 200, 'Cash',
+        isPaid.PENDING, new Date(), null, {}, {}
+      );
+      
+      rental.rentalStart = null;
+      rental.rentalEnd = undefined;
+      
+      const result = rental.formatDate();
+      
+      expect(result.startDate).toBe('');
+      expect(result.endDate).toBe('');
     });
 
     test('should handle invalid date formats', () => {

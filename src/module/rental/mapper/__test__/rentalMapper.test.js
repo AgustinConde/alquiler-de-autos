@@ -103,6 +103,46 @@ describe('rentalMapper', () => {
       expect(result.car).toEqual({});
       expect(result.client).toEqual({});
     });
+
+    test('should handle model without dataValues property', () => {
+      const modelWithoutDataValues = {
+        id: 1,
+        rentedCar: 2,
+        rentedTo: 3,
+        pricePerDay: 50,
+        rentalStart: '2023-05-01',
+        rentalEnd: '2023-05-05',
+        totalPrice: 250,
+        paymentMethod: 'Card',
+        isPaid: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      modelWithoutDataValues.toJSON = () => ({
+        id: modelWithoutDataValues.id,
+        rentedCar: modelWithoutDataValues.rentedCar,
+        rentedTo: modelWithoutDataValues.rentedTo,
+        isPaid: modelWithoutDataValues.isPaid
+      });
+      
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      
+      const result = modelToEntity(
+        modelWithoutDataValues, 
+        carMapperMock.modelToEntity
+      );
+      
+      expect(console.log).toHaveBeenCalledWith(
+        '🔍 DEBUG - Raw model data:',
+        expect.stringContaining('objectKeys')
+      );
+      
+      expect(result).toBeInstanceOf(Rental);
+      
+      console.log = originalConsoleLog;
+    });
   });
 
   describe('formToEntity', () => {
@@ -215,6 +255,26 @@ describe('rentalMapper', () => {
       const result2 = formToEntity(formData2);
       
       expect(result2.paymentProgress).toBe(isPaid.PENDING);
+    });
+
+    test('should handle undefined rentedCar and rentedTo values', () => {
+      const formData = {
+        id: '1',
+        'price-per-day': '50',
+        'rental-start': '2023-05-01',
+        'rental-end': '2023-05-05',
+        'total-price': '250',
+        'payment-method': 'Card'
+      };
+      
+      const result = formToEntity(formData);
+      
+      expect(result.rentedCar).toBeUndefined();
+      expect(result.rentedTo).toBeUndefined();
+      
+      expect(result.id).toBe('1');
+      expect(result.pricePerDay).toBe(50);
+      expect(result.totalPrice).toBe(250);
     });
   });
 });

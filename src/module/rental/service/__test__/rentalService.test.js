@@ -163,6 +163,33 @@ describe('RentalService', () => {
         .rejects
         .toThrow('This car is not available for the selected dates');
     });
+
+    test('should detect conflict when start date falls within existing rental', async () => {
+      const carId = 1;
+      const existingRental = new Rental(
+        1, // id
+        carId, // carId
+        1, // clientId
+        50, // pricePerDay
+        new Date('2023-06-01T12:00:00'),
+        new Date('2023-06-10T12:00:00'),
+        500,
+        'Card',
+        isPaid.PENDING,
+        new Date(),
+        new Date()
+      );
+      
+      mockRentalRepository.getRentalsByCarId.mockResolvedValue([existingRental]);
+      
+      await expect(rentalService.checkCarAvailability(
+        carId,
+        '2023-06-05',
+        '2023-06-15'
+      )).rejects.toThrow('This car is not available for the selected dates');
+      
+      expect(mockRentalRepository.getRentalsByCarId).toHaveBeenCalledWith(carId);
+    });
   });
 
   describe('updatePaymentStatus', () => {
@@ -261,6 +288,45 @@ describe('RentalService', () => {
       await expect(rentalService.saveRental(rentalData))
         .rejects
         .toThrow(`Failed to create rental: ${errorMessage}`);
+    });
+
+    test('should use default payment progress when not provided', async () => {
+      const rentalData = {
+        rentedCar: 1,
+        rentedTo: 1,
+        pricePerDay: 50,
+        rentalStart: '2023-06-01',
+        rentalEnd: '2023-06-05',
+        totalPrice: 250,
+        paymentMethod: 'Card'
+      };
+      
+      jest.spyOn(rentalService, 'checkCarAvailability').mockResolvedValue(true);
+      
+      const savedRental = new Rental(
+        1,
+        rentalData.rentedCar,
+        rentalData.rentedTo,
+        rentalData.pricePerDay,
+        new Date(rentalData.rentalStart),
+        new Date(rentalData.rentalEnd),
+        rentalData.totalPrice,
+        rentalData.paymentMethod,
+        isPaid.PENDING,
+        new Date(),
+        new Date(),
+        {},
+        {}
+      );
+      
+      mockRentalRepository.save.mockResolvedValue(savedRental);
+      
+      const result = await rentalService.saveRental(rentalData);
+      
+      expect(result.paymentProgress).toEqual(isPaid.PENDING);
+      
+      const saveSpy = mockRentalRepository.save.mock.calls[0][0];
+      expect(saveSpy.paymentProgress).toEqual(isPaid.PENDING);
     });
   });
   
