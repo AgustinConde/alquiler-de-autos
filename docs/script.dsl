@@ -6,60 +6,91 @@ workspace "Rent-a-Car" "Proyecto de sistema de alquiler de autos"{
     
     model {
         admin = person "Administrador" "Persona que administra el sistema para alquilar autos"
+        client = person "Cliente" "Persona que alquila autos desde la web"
 
         system = softwareSystem "Sistema de Alquiler de Autos" "Aplicación web para gestionar alquileres de autos" {
-            database = container "Base de Datos (SQLite)" "Almacena y gestiona la información de los autos y alquileres" "SQLite" {
+            database = container "Base de Datos (SQLite)" "Almacena y gestiona la información de los autos, clientes, alquileres, pagos y auditoría" "SQLite" {
                 tags "Database"
             }
-            app = container "Aplicación web de Alquiler de Autos" "Muestra la información de los autos y alquileres" "Node.js" {
-                backend = component "Aplicación web de Alquiler de Autos" "Muestra la información de los autos y alquileres" "Node.js"
-                
-                user_controller = component "UserController" "Interfaz entre la entrada y la lógica de dominio" "Express"
-                user_service = component "UserService" "Maneja la lógica de negocio de usuarios" "Node.js"
-                user_repository = component "UserRepository" "Interfaz entre el módulo de usuarios y la base de datos" "Node.js"
-    
-                car_controller = component "CarController" "Interfaz entre la entrada y la lógica de dominio" "Express"
-                car_service = component "CarService" "Maneja la lógica de negocio de autos" "Node.js"
-                car_repository = component "CarRepository" "Interfaz entre el módulo de autos y la base de datos" "Node.js"
-    
-                rent_controller = component "RentController" "Interfaz entre la entrada y la lógica de dominio" "Express"
-                rent_service = component "RentService" "Maneja la lógica de negocio de los alquileres" "Node.js"
-                rent_repository = component "RentRepository" "Interfaz entre el módulo de alquileres y la base de datos" "Node.js"
-                
-                backend -> user_controller "Procesa solicitudes HTTP"
-                backend -> car_controller "Procesa solicitudes HTTP"
-                backend -> rent_controller "Procesa solicitudes HTTP"
-                
-                user_controller -> user_service "Llama a la lógica de negocio"
-                user_service -> user_repository "Usa la capa de acceso a datos"
-                user_repository -> database "Lee y escribe datos de usuarios"
-    
-                car_controller -> car_service "Llama a la lógica de negocio"
-                car_service -> car_repository "Usa la capa de acceso a datos"
-                car_repository -> database "Lee y escribe datos de autos"
-    
-                rent_controller -> rent_service "Llama a la lógica de negocio"
-                rent_service -> rent_repository "Usa la capa de acceso a datos"
-                rent_repository -> database "Lee y escribe datos de reservas" 
+            app = container "Aplicación web de Alquiler de Autos" "Backend Node.js/Express que expone la API y renderiza vistas" "Node.js/Express" {
+                // Auth
+                auth_controller = component "AuthController" "Gestiona autenticación y registro de usuarios" "Express"
+                auth_service = component "AuthService" "Lógica de autenticación" "Node.js"
+                auth_repository = component "AuthRepository" "Acceso a datos de autenticación" "Node.js"
+                // Client
+                client_controller = component "ClientController" "Gestiona clientes" "Express"
+                client_service = component "ClientService" "Lógica de clientes" "Node.js"
+                client_repository = component "ClientRepository" "Acceso a datos de clientes" "Node.js"
+                // Car
+                car_controller = component "CarController" "Gestiona autos" "Express"
+                car_service = component "CarService" "Lógica de autos" "Node.js"
+                car_repository = component "CarRepository" "Acceso a datos de autos" "Node.js"
+                // Rental
+                rental_controller = component "RentalController" "Gestiona alquileres" "Express"
+                rental_service = component "RentalService" "Lógica de alquileres" "Node.js"
+                rental_repository = component "RentalRepository" "Acceso a datos de alquileres" "Node.js"
+                // Payment
+                payment_controller = component "PaymentController" "Gestiona pagos" "Express"
+                payment_service = component "PaymentService" "Lógica de pagos" "Node.js"
+                payment_repository = component "PaymentRepository" "Acceso a datos de pagos" "Node.js"
+                // Audit
+                audit_service = component "AuditService" "Auditoría de acciones" "Node.js"
+                audit_repository = component "AuditRepository" "Acceso a datos de auditoría" "Node.js"
+                // Default
+                default_controller = component "DefaultController" "Páginas por defecto y errores" "Express"
+
+                // Relaciones internas
+                auth_controller -> auth_service
+                auth_service -> auth_repository
+                auth_repository -> database
+
+                client_controller -> client_service
+                client_service -> client_repository
+                client_repository -> database
+
+                car_controller -> car_service
+                car_service -> car_repository
+                car_repository -> database
+
+                rental_controller -> rental_service
+                rental_service -> rental_repository
+                rental_repository -> database
+
+                payment_controller -> payment_service
+                payment_service -> payment_repository
+                payment_repository -> database
+
+                audit_service -> audit_repository
+                audit_repository -> database
+
+                // AuditService es llamado por otros services
+                client_service -> audit_service
+                car_service -> audit_service
+                rental_service -> audit_service
+                payment_service -> audit_service
+
+                // DefaultController puede acceder a servicios generales
+                default_controller -> client_service
+                default_controller -> car_service
             }
-            admin -> system.app "Utiliza el sistema para gestionar la información de los alquileres de autos"
-            app -> database "Solicita los cambios a la base de datos"
-            
+            admin -> system.app "Administra el sistema"
+            client -> system.app "Usa el sistema para alquilar autos"
+            app -> database "Lee y escribe datos"
         }
     }
 
     views {
-        systemContext system "Diagram1" {
+        systemContext system "C4-Nivel-1" {
             include *
             autolayout lr
         }
         
-        container system "Diagram2" {
+        container system "C4-Nivel-2" {
             include *
             autolayout lr
         }
         
-        component system.app "Diagram3" {
+        component system.app "C4-Nivel-3" {
             include *
             autolayout tb
         }
