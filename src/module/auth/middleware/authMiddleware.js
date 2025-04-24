@@ -7,7 +7,7 @@ function isAdmin(req, res, next) {
         return res.redirect('/auth/login');
     }
     
-    if (req.session.role !== 'admin') {
+    if (req.session.userRole !== 'admin') {
         req.flash('error', 'Access denied: Admin privileges required');
         return res.redirect('/');
     }
@@ -21,7 +21,7 @@ function isAuthenticated(req, res, next) {
         console.log('📍 Session:', {
             clientId: req.session?.clientId,
             auth: req.session?.auth,
-            role: req.session?.auth?.role
+            role: req.session?.userRole
         });
     }
 

@@ -81,7 +81,7 @@ module.exports = class RentalController {
       res.render(viewPath, {
         title: `Viewing Rental #${rental.id}`,
         rental,
-        isAdmin: req.session.role === 'admin',
+        isAdmin: req.session.userRole === 'admin',
         from: from
       });
     } catch (error) {

@@ -71,7 +71,7 @@ describe('AuthController', () => {
     expect(authService.login).toHaveBeenCalledWith('test@example.com', 'pass');
     expect(req.session.clientId).toBe(2);
     expect(req.session.auth).toEqual({ id: 1, username: 'test' });
-    expect(req.session.role).toBe('user');
+    expect(req.session.userRole).toBe('user');
     expect(res.redirect).toHaveBeenCalledWith('/');
   });
 

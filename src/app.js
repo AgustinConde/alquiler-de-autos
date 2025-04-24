@@ -141,7 +141,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     res.locals.client = req.session.clientId ? {
         id: req.session.clientId,
-        role: req.session.role
+        role: req.session.userRole
     } : null;
     res.locals.flash = req.flash();
     next();

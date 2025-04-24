@@ -50,7 +50,7 @@ describe('RentalController', () => {
 
   test('view should render rental view (profile)', async () => {
     req.params.rentalId = '1';
-    req.session.role = 'client';
+    req.session.userRole = 'client';
     req.query = {};
     req.path = '/profile/rentals/view/1';
     RentalService.getRentalById.mockResolvedValue({ id: 1 });
@@ -60,7 +60,7 @@ describe('RentalController', () => {
 
   test('view should render rental view (admin)', async () => {
     req.params.rentalId = '1';
-    req.session.role = 'admin';
+    req.session.userRole = 'admin';
     req.query = {};
     req.path = '/manage/rentals/view/1';
     RentalService.getRentalById.mockResolvedValue({ id: 1 });

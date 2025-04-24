@@ -125,37 +125,35 @@ module.exports = class AuthController {
     async processLogin(req, res) {
       try {
         const { email, password } = req.body;
-        console.log('🔐 Authenticating user:', email);
         const { auth, client } = await this.authService.login(email, password);
-        
-        req.session.clientId = client.id;
+        const clientData = client.dataValues ? client.dataValues : client;
+        req.session.clientId = clientData.id;
         req.session.auth = {
           id: auth.id,
           username: auth.username
         };
-        req.session.role = client.role;
-    
-        console.log('✅ Login successful for:', email);
-        
-        let returnTo = req.session.returnTo;
-
-        delete req.session.returnTo;
-        
-        if (returnTo === '/favicon.ico' || 
-            returnTo?.endsWith('.ico') || 
-            returnTo?.endsWith('.js') || 
-            returnTo?.endsWith('.css') || 
-            returnTo?.endsWith('.jpg') || 
-            returnTo?.endsWith('.png')) {
-          returnTo = '/';
-        }
-        
-        if (returnTo) {
-          console.log('↩️ Redirecting to saved URL:', returnTo);
-          return res.redirect(returnTo);
-        }
-        
-        res.redirect('/');
+        req.session.userRole = String(clientData.role);
+        req.session.save((err) => {
+          if (err) {
+            console.error('❌ Error saving session:', err);
+            req.flash('error', 'Session error');
+            return res.redirect('/auth/login');
+          }
+          let returnTo = req.session.returnTo;
+          delete req.session.returnTo;
+          if (returnTo === '/favicon.ico' || 
+              returnTo?.endsWith('.ico') || 
+              returnTo?.endsWith('.js') || 
+              returnTo?.endsWith('.css') || 
+              returnTo?.endsWith('.jpg') || 
+              returnTo?.endsWith('.png')) {
+            returnTo = '/';
+          }
+          if (returnTo) {
+            return res.redirect(returnTo);
+          }
+          res.redirect('/');
+        });
       } catch (error) {
         console.error('❌ Login error:', error);
         req.flash('error', 'Invalid credentials');
