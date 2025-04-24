@@ -30,7 +30,6 @@ app.get('/favicon.ico', (req, res) => {
   
   res.sendFile(faviconPath, (err) => {
     if (err) {
-      console.log('⚠️ Favicon not found, sending empty response');
       res.status(204).end();
     }
   });
