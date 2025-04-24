@@ -67,6 +67,7 @@ describe('AuthController', () => {
     req.body = { email: 'test@example.com', password: 'pass' };
     authService.login.mockResolvedValue({ auth: { id: 1, username: 'test' }, client: { id: 2, role: 'user' } });
     req.session = {};
+    req.session.save = cb => cb();
     await controller.processLogin(req, res);
     expect(authService.login).toHaveBeenCalledWith('test@example.com', 'pass');
     expect(req.session.clientId).toBe(2);
@@ -78,6 +79,7 @@ describe('AuthController', () => {
   test('processLogin should redirect to returnTo and clear it', async () => {
     req.body = { email: 'test@example.com', password: 'pass' };
     req.session = { returnTo: '/dashboard' };
+    req.session.save = cb => cb();
     authService.login.mockResolvedValue({ auth: { id: 1, username: 'test' }, client: { id: 2, role: 'user' } });
     await controller.processLogin(req, res);
     expect(res.redirect).toHaveBeenCalledWith('/dashboard');
@@ -87,6 +89,7 @@ describe('AuthController', () => {
   test('processLogin should sanitize returnTo for static files', async () => {
     req.body = { email: 'test@example.com', password: 'pass' };
     req.session = { returnTo: '/favicon.ico' };
+    req.session.save = cb => cb();
     authService.login.mockResolvedValue({ auth: { id: 1, username: 'test' }, client: { id: 2, role: 'user' } });
     await controller.processLogin(req, res);
     expect(res.redirect).toHaveBeenCalledWith('/');
@@ -96,9 +99,47 @@ describe('AuthController', () => {
     req.body = { email: 'fail@example.com', password: 'fail' };
     authService.login.mockRejectedValue(new Error('fail'));
     req.session = {};
+    req.session.save = cb => cb();
     await controller.processLogin(req, res);
     expect(req.flash).toHaveBeenCalledWith('error', 'Invalid credentials');
     expect(res.redirect).toHaveBeenCalledWith('/auth/login');
+  });
+
+  test('processLogin should handle session save error and redirect to login', async () => {
+    req.body = { email: 'test@example.com', password: 'pass' };
+    authService.login.mockResolvedValue({ auth: { id: 1, username: 'test' }, client: { id: 2, role: 'user' } });
+    req.session = {};
+    const error = new Error('session save failed');
+    req.session.save = cb => cb(error);
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await controller.processLogin(req, res);
+    expect(spy).toHaveBeenCalledWith('❌ Error saving session:', error);
+    expect(req.flash).toHaveBeenCalledWith('error', 'Session error');
+    expect(res.redirect).toHaveBeenCalledWith('/auth/login');
+    spy.mockRestore();
+  });
+
+  test('processLogin should handle client as plain object', async () => {
+    req.body = { email: 'test@example.com', password: 'pass' };
+    authService.login.mockResolvedValue({ auth: { id: 1, username: 'test' }, client: { id: 2, role: 'user' } });
+    req.session = {};
+    req.session.save = cb => cb();
+    await controller.processLogin(req, res);
+    expect(req.session.clientId).toBe(2);
+    expect(req.session.userRole).toBe('user');
+    expect(res.redirect).toHaveBeenCalledWith('/');
+  });
+
+  test('processLogin should handle client as Sequelize instance with dataValues', async () => {
+    req.body = { email: 'test@example.com', password: 'pass' };
+    const clientSequelize = { dataValues: { id: 3, role: 'admin' } };
+    authService.login.mockResolvedValue({ auth: { id: 2, username: 'admin' }, client: clientSequelize });
+    req.session = {};
+    req.session.save = cb => cb();
+    await controller.processLogin(req, res);
+    expect(req.session.clientId).toBe(3);
+    expect(req.session.userRole).toBe('admin');
+    expect(res.redirect).toHaveBeenCalledWith('/');
   });
 
   test('processRegister should handle missing fields', async () => {
