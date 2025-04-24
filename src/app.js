@@ -30,7 +30,6 @@ app.get('/favicon.ico', (req, res) => {
   
   res.sendFile(faviconPath, (err) => {
     if (err) {
-      console.log('⚠️ Favicon not found, sending empty response');
       res.status(204).end();
     }
   });
@@ -141,7 +140,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     res.locals.client = req.session.clientId ? {
         id: req.session.clientId,
-        role: req.session.role
+        role: req.session.userRole
     } : null;
     res.locals.flash = req.flash();
     next();

@@ -183,7 +183,7 @@ class ClientController {
    */
   async makeAdmin(req, res) {
     try {
-        if (!req.session.clientId || req.session.role !== 'admin') {
+        if (!req.session.clientId || req.session.userRole !== 'admin') {
             req.flash('error', 'You do not have permission to perform this action');
             return res.redirect('/manage/clients');
         }

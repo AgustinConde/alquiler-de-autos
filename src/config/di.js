@@ -41,7 +41,7 @@ function configureClientModule(container) {
  */
 function configureRentalModule(container) {
   const model = RentalModel.setup(container.get('RentalSequelize'));
-  model.setAssociations();
+  model.setAssociations(container.get('CarModel'), container.get('ClientModel'));
   return model;
 }
 

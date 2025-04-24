@@ -123,7 +123,7 @@ describe('Auth Middleware', () => {
       const req = {
         session: { 
           clientId: 1,
-          role: 'admin'
+          userRole: 'admin'
         },
         flash: jest.fn()
       };
@@ -145,7 +145,7 @@ describe('Auth Middleware', () => {
       const req = {
         session: { 
           clientId: 1,
-          role: 'client'
+          userRole: 'client'
         },
         flash: jest.fn()
       };

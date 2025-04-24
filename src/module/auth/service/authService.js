@@ -29,7 +29,6 @@ module.exports = class AuthService {
 
       let client;
       if (!auth.clientId) {
-        console.log('⚠️ Auth record missing clientId, falling back to email search');
         client = await this.clientRepository.getByEmail(email);
       } else {
         client = await this.clientRepository.getClientById(auth.clientId);

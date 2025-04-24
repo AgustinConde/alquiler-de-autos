@@ -214,7 +214,7 @@ describe('ClientController', () => {
   });
 
   test('makeAdmin should make client admin and redirect', async () => {
-    req.session = { clientId: 2, role: 'admin' };
+    req.session = { clientId: 2, userRole: 'admin' };
     req.params.id = '1';
     clientService.update.mockResolvedValue({ email: 'mail@mail.com' });
     await controller.makeAdmin(req, res);
@@ -224,14 +224,14 @@ describe('ClientController', () => {
   });
 
   test('makeAdmin should handle permission error', async () => {
-    req.session = { clientId: null, role: 'user' };
+    req.session = { clientId: null, userRole: 'user' };
     await controller.makeAdmin(req, res);
     expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
     expect(res.redirect).toHaveBeenCalledWith('/manage/clients');
   });
 
   test('makeAdmin should handle error', async () => {
-    req.session = { clientId: 2, role: 'admin' };
+    req.session = { clientId: 2, userRole: 'admin' };
     req.params.id = '1';
     clientService.update.mockRejectedValue(new Error('fail'));
     await controller.makeAdmin(req, res);
