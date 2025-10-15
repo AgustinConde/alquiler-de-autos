@@ -1,6 +1,6 @@
 # alquiler-de-autos (rent-a-car)
 
-Repositorio del proyecto de alquiler de autos (rent-a-car) para r/argentina-programa.
+Proyecto de alquiler de autos (rent-a-car).
 
 ## Requisitos previos
 
